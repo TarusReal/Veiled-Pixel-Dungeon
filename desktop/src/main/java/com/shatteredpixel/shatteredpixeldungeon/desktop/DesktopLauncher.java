@@ -45,6 +45,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Locale;
 
+import static java.lang.Thread.setDefaultUncaughtExceptionHandler;
+
 public class DesktopLauncher {
 
 	public static void main (String[] args) {
@@ -73,7 +75,7 @@ public class DesktopLauncher {
 		}
 		title = resolvedTitle;
 		
-		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+		setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread thread, Throwable throwable) {
 				Game.reportException(throwable);
