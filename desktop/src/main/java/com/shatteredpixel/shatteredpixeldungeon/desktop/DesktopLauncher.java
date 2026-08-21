@@ -64,11 +64,14 @@ public class DesktopLauncher {
 		}
 		
 		final String title;
-		if (DesktopLauncher.class.getPackage().getSpecificationTitle() == null){
-			title = System.getProperty("Specification-Title");
-		} else {
-			title = DesktopLauncher.class.getPackage().getSpecificationTitle();
+		String resolvedTitle = DesktopLauncher.class.getPackage().getSpecificationTitle();
+		if (resolvedTitle == null || resolvedTitle.trim().isEmpty()) {
+			resolvedTitle = System.getProperty("Specification-Title");
 		}
+		if (resolvedTitle == null || resolvedTitle.trim().isEmpty()) {
+			resolvedTitle = "Shattered Pixel Dungeon";
+		}
+		title = resolvedTitle;
 		
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			@Override
@@ -119,11 +122,18 @@ public class DesktopLauncher {
 		if (Game.version == null) {
 			Game.version = System.getProperty("Specification-Version");
 		}
-		
+		if (Game.version == null) {
+			Game.version = "???";
+		}
+
+		String runtimeVersionCode = DesktopLauncher.class.getPackage().getImplementationVersion();
+		if (runtimeVersionCode == null) {
+			runtimeVersionCode = System.getProperty("Implementation-Version");
+		}
 		try {
-			Game.versionCode = Integer.parseInt(DesktopLauncher.class.getPackage().getImplementationVersion());
+			Game.versionCode = Integer.parseInt(runtimeVersionCode);
 		} catch (NumberFormatException e) {
-			Game.versionCode = Integer.parseInt(System.getProperty("Implementation-Version"));
+			Game.versionCode = 0;
 		}
 
 		if (UpdateImpl.supportsUpdates()){
@@ -141,11 +151,16 @@ public class DesktopLauncher {
 		// (e.g. /.shatteredpixel/shatteredpixeldungeon), but we have too much existing save
 		// date to worry about transferring at this point.
 		String vendor = DesktopLauncher.class.getPackage().getImplementationTitle();
-		if (vendor == null) {
+		if (vendor == null || vendor.trim().isEmpty()) {
 			vendor = System.getProperty("Implementation-Title");
 		}
-		vendor = vendor.split("\\.")[1];
+		if (vendor == null || vendor.trim().isEmpty()) {
+			vendor = "com.shatteredpixel.shatteredpixeldungeon";
+		}
+		String[] vendorParts = vendor.split("\\.");
+		vendor = vendorParts.length > 1 ? vendorParts[1] : vendorParts[0];
 
+		config.setTitle(title);
 		String basePath = "";
 		Files.FileType baseFileType = null;
 		if (SharedLibraryLoader.os == Os.Windows) {

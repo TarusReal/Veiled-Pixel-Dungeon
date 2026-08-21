@@ -410,7 +410,7 @@ in `Statistics.java` gefunden.
 
 ### a) Design-Vorschlag: `RegionDefinition[]`
 
-Die in `CLAUDE.md` (Fallstrick #7) benannte harte Kodierung von Etage 1-26
+Die in `../Agent.md` (Fallstrick #7) benannte harte Kodierung von Etage 1-26
 verteilt sich über mindestens acht strukturelle Stellen plus die in
 Segment 1-3 gefundenen `default`-Zweig-Kollisionen (`ShopRoom`,
 `InterlevelScene`-Splash-Switch) und die verstreute `depth/5`-Arithmetik.
@@ -491,7 +491,7 @@ als Kernrepräsentation würde diese 290 Stellen potenziell berühren statt
 nur die ~8 strukturellen Hotspots plus die in Segment 1-3 katalogisierten
 `default`-Kollisionen. Auch das gespeicherte Bundle-Format
 (`Dungeon.java:611`, `DEPTH="depth"`) bliebe unverändert — relevant, weil
-Umbenennungen/Formatwechsel laut `CLAUDE.md` ohnehin mit Bundle-Alias-
+Umbenennungen/Formatwechsel laut `../Agent.md` ohnehin mit Bundle-Alias-
 Vorsicht zu behandeln sind.
 
 **3. Relative vs. feste Boss-Meilensteine.** Direkte Folge aus Frage 1:
@@ -528,7 +528,7 @@ Optionen:
   bei 1 belassen (Ebene 0 wird intern z. B. als "Etage -1" oder
   gesonderter Marker geführt).** Vermeidet jede Sentinel-Migration,
   verschiebt das Problem aber auf Frage 1 (Einsortierung) und bricht mit
-  der in `CLAUDE.md`/Fallstrick #7 dokumentierten Zahlenlogik
+  der in `../Agent.md`/Fallstrick #7 dokumentierten Zahlenlogik
   (`depth/5`-Kapitelrechnung ginge nicht mehr für die neue unterste
   Etage auf).
 - **Option C — nichts vereinheitlichen, nur die ~5-6 konkret gefundenen
@@ -539,7 +539,7 @@ Optionen:
 
 Keine Vorfestlegung von meiner Seite über die Empfehlung hinaus — das ist
 eine Entscheidung, die ausdrückliche Ansage braucht (vgl.
-`CLAUDE.md`-Arbeitsregel zu Verhaltensänderungen).
+`../Agent.md`-Arbeitsregel zu Verhaltensänderungen).
 
 ### d) Risikoeinschätzung (Golden-Master-Tests)
 
