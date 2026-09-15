@@ -8,25 +8,17 @@ Die effektivste Form ist eine doppelte Checkliste:
 - ausführliche Checklist für den eigentlichen Implementierungsfluss
 - kurze Final-Checklist als letzte Abnahmeprüfung
 
-Das ist meist besser als lange Textblöcke, weil es die wichtigsten Prüfungen klar und schnell lesbar macht.
-
-## Leitregel
-Wenn ein allgemeines System bereits in einer allgemeinen Guideline beschrieben ist, dann enthält die spezielle Guideline nur noch die feature-spezifischen Punkte. Keine Wiederholung der allgemeinen Regeln.
-
-## Struktur einer guten Guideline
-Eine gute Feature-Guideline enthält in der Regel:
-- Ziel
-- ausführliche Checklist
-- Common pitfalls
-- kurze Final-Checklist
-
-Diese Struktur ist klarer als "Requirements + Definition of Done + To-Do" mit starker Redundanz.
+## Wie
+Wenn die Feauture-Art oder System bereits in einer allgemeinen Guideline behandelt wird, soll die Guideline nur die neuen spezifischen Punkte für das Feature enthalten.
+Dies wird am Anfang der Guideline mit "{Feature} child of {GeneralGuideline}" klar gemacht. Z.B. "DamageWand child of Wand child of Item" oder "Food child of Item".
+das child ist dann eine spezielle Guideline und enthält nur die feature-spezifischen Punkte. Keine Wiederholung der allgemeinen Regeln.
 
 ## Was man vermeiden sollte
 - Keine langen Einleitungen oder theoretischen Erläuterungen.
 - Keine ungenauen Formulierungen wie „muss sauber implementiert werden“ ohne überprüfbaren Punkt.
 - Keine Wiederholungen zwischen ausführlicher Checklist und Final-Checklist.
 - Keine Playtest-Anforderungen als Implementierungsregel (oder zumindest als nur für den Benutzer relevant kennzeichnen).
+- Keine Validierungstest und keine Redundanz
 - Keine Generic-Regeln in Spezial-Guidelines, wenn nur das Feature relevant ist.
 
 ## Beispielstruktur
@@ -54,4 +46,9 @@ Diese Struktur ist klarer als "Requirements + Definition of Done + To-Do" mit st
 ## Verfügbare Feature-Guidelines
 - [Item-Guideline](./item-guideline.md)
 - [Creature-Guideline](./creature-guideline.md)
+- [Wand-Guideline](./wand-guideline.md)
+- [Weapon-Guideline](./weapon-guideline.md)
+- [Armor-Guideline](./armor-guideline.md)
+- [Potion-Guideline](./potion-guideline.md)
+- [Scroll-Guideline](./scroll-guideline.md)
 
