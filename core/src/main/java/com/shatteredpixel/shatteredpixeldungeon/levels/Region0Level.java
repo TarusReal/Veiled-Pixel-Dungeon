@@ -24,9 +24,11 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.EventSpirit;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.EventRoom;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -40,15 +42,18 @@ import java.util.ArrayList;
  * hand-carved {@link Level} in this codebase).
  *
  * <p>No real surface content: no houses, NPCs, shops, or decorated item/mob placement - that's
- * explicitly out of scope for this fork (Fork 2 territory). {@link #createMob()} is intentionally
+ * still out of scope for this fork (Fork 2 territory). Instead, depth 0 now doubles as the
+ * debug/test floor: it holds one hand-carved {@link EventRoom} with three {@link EventSpirit}s
+ * (one per current choice event, so all of them can be tested in a single visit), reached via
+ * the "Go anyway" choice on the depth 1 surface stairs. {@link #createMob()} is intentionally
  * left at its {@link Level} default (backed by {@code MobSpawner}/{@code MobRegistry}, exactly
  * like every other level) so a fight here is technically possible if something ever calls
  * {@code spawnMob()}/{@code createMob()} directly - but {@link #addRespawner()} returns
- * {@code null} so nothing spawns automatically; no mobs are configured for Region 0 yet.
+ * {@code null} so nothing spawns automatically beyond the hand-placed spirits.
  */
 public class Region0Level extends Level {
 
-	private static final int SIZE = 7;
+	private static final int SIZE = 13;
 
 	{
 		color1 = 0x534f3e;
@@ -76,11 +81,28 @@ public class Region0Level extends Level {
 			}
 		}
 
+		//debug content: one hand-carved choice-event room, one spirit per current event
+		EventRoom eventRoom = new EventRoom();
+		eventRoom.set( SIZE - 5, 2, SIZE - 1, 6 );
+		eventRoom.paint( this );
+		//door between the main area and the room
+		map[4 * width() + (SIZE - 5)] = Terrain.DOOR;
+		//the room's own spirit sits at the center, add one above and below it
+		int centerCell = pointToCell( eventRoom.center() );
+		addEventSpirit( centerCell - width() );
+		addEventSpirit( centerCell + width() );
+
 		int exit = (SIZE / 2) * width() + SIZE / 2;
 		map[exit] = Terrain.EXIT;
 		transitions.add(new LevelTransition(this, exit, LevelTransition.Type.REGULAR_EXIT));
 
 		return true;
+	}
+
+	private void addEventSpirit( int cell ) {
+		EventSpirit spirit = new EventSpirit();
+		spirit.pos = cell;
+		mobs.add( spirit );
 	}
 
 	@Override

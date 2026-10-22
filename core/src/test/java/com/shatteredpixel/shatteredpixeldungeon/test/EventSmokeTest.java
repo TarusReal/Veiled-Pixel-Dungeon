@@ -8,6 +8,9 @@ import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.GoldenBagEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.TwinWeaponsEvent;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Region0Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SewerLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 
 import org.junit.jupiter.api.Test;
@@ -16,6 +19,7 @@ import com.watabou.utils.Bundle;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -57,6 +61,34 @@ class EventSmokeTest extends GameTestBase {
 
 		//the spirit must stand on walkable ground, i.e. the room was painted correctly
 		assertTrue(level.passable[spirit.pos], "event spirit must stand on a passable cell");
+	}
+
+	@Test
+	void debugLevelZeroHoldsOneSpiritPerEventAndLeadsBackToDepthOne() {
+		Dungeon.depth = 0;
+		Dungeon.branch = 0;
+		Level level = Dungeon.newLevel();
+		Dungeon.level = level;
+
+		assertInstanceOf(Region0Level.class, level, "depth 0 must stay the Region 0 level");
+
+		int spirits = 0;
+		for (Mob mob : level.mobs) {
+			if (mob instanceof EventSpirit) spirits++;
+		}
+		assertEquals(3, spirits, "level 0 should hold one spirit per current event");
+
+		//arriving via the "Go anyway" transition falls back to the level's only transition, the exit
+		LevelTransition arrival = level.getTransition(LevelTransition.Type.REGULAR_ENTRANCE);
+		assertNotNull(arrival, "level 0 must offer an arrival cell");
+		assertEquals(level.exit(), arrival.cell());
+
+		//and the exit descends back to depth 1
+		assertEquals(1, level.getTransition(LevelTransition.Type.REGULAR_EXIT).destDepth);
+
+		//both dialog buttons must resolve in english and german bundles
+		assertNotEquals(Messages.NO_TEXT_FOUND, Messages.get(SewerLevel.class, "leave_ok"));
+		assertNotEquals(Messages.NO_TEXT_FOUND, Messages.get(SewerLevel.class, "leave_go"));
 	}
 
 	@Test

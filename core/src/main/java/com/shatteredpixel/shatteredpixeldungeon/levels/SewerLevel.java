@@ -47,9 +47,10 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.traps.ToxicTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WornDartTrap;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.SurfaceScene;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.audio.Music;
@@ -149,7 +150,17 @@ public class SewerLevel extends RegularLevel {
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
-						GameScene.show( new WndMessage( Messages.get(hero, "leave") ) );
+						//OK closes the dialog, "Go anyway" / "Doch" ascends to the level 0 debug floor
+						GameScene.show( new WndOptions( (String) null, Messages.get(hero, "leave"),
+								Messages.get(SewerLevel.class, "leave_ok"),
+								Messages.get(SewerLevel.class, "leave_go")) {
+							@Override
+							protected void onSelect( int index ) {
+								if (index == 1) {
+									ascendToDebugLevel( transition );
+								}
+							}
+						});
 					}
 				});
 				return false;
@@ -174,6 +185,18 @@ public class SewerLevel extends RegularLevel {
 		} else {
 			return super.activateTransition(hero, transition);
 		}
+	}
+
+	//ascends the surface stairs into the level 0 debug floor instead of the surface.
+	//arrival on level 0 falls back to its only transition, the exit back to depth 1
+	private static void ascendToDebugLevel( LevelTransition from ) {
+		LevelTransition toDebugLevel = new LevelTransition( Dungeon.level, from.cell(),
+				LevelTransition.Type.SURFACE, 0, 0, LevelTransition.Type.REGULAR_ENTRANCE );
+
+		Level.beforeTransition();
+		InterlevelScene.curTransition = toDebugLevel;
+		InterlevelScene.mode = InterlevelScene.Mode.ASCEND;
+		Game.switchScene( InterlevelScene.class );
 	}
 
 	@Override
