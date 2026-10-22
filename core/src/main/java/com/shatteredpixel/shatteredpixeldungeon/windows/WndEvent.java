@@ -18,29 +18,67 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.EventSpirit;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventHost;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 
 /**
- * Dialog for a {@link DungeonEvent}: title, scene text and one button per choice.
- * Any choice consumes the event, the spirit then fades away.
+ * Dialog for a {@link DungeonEvent}: shows the current stage, applies a choice,
+ * then shows the result text before either opening the next stage or ending the event.
  */
-public class WndEvent extends WndOptions {
+public class WndEvent extends WndCompactOptions {
 
-	private DungeonEvent event;
-	private EventSpirit spirit;
+	private final EventHost host;
+	private final DungeonEvent event;
 
-	public WndEvent( EventSpirit spirit, DungeonEvent event ){
-		super( event.txt("title"), event.txt("text"), event.labels() );
+	public WndEvent( EventHost host, DungeonEvent event ){
+		super( event.title(), event.text( event.stage() ), labels( event ) );
+		this.host = host;
 		this.event = event;
-		this.spirit = spirit;
+	}
+
+	private static String[] labels( DungeonEvent event ){
+		int stage = event.stage();
+		String[] labels = new String[event.choices( stage )];
+		for (int i = 0; i < labels.length; i++){
+			labels[i] = event.label( stage, i );
+		}
+		return labels;
 	}
 
 	@Override
 	protected void onSelect( int index ){
-		event.select( Dungeon.hero, index );
-		if (spirit != null){
-			spirit.dismiss();
+		int stage = event.stage();
+		event.apply( Dungeon.hero, stage, index );
+
+		String result = event.result( stage, index );
+		int next = event.nextStage( stage, index );
+
+		GameScene.show( new WndResult( host, event, result, next ) );
+	}
+
+	private static class WndResult extends WndCompactOptions {
+
+		private final EventHost host;
+		private final DungeonEvent event;
+		private final int nextStage;
+
+		WndResult( EventHost host, DungeonEvent event, String text, int nextStage ){
+			super( event.title(), text, Messages.get( "events.ui.continue" ) );
+			this.host = host;
+			this.event = event;
+			this.nextStage = nextStage;
+		}
+
+		@Override
+		protected void onSelect( int index ){
+			if (nextStage < 0){
+				host.finished();
+			} else {
+				event.setStage( nextStage );
+				GameScene.show( new WndEvent( host, event ) );
+			}
 		}
 	}
 }

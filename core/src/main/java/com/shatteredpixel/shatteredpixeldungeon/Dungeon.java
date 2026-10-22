@@ -62,6 +62,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.RegionDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.VaultLevel;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventRunState;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
@@ -242,6 +243,7 @@ public class Dungeon {
 			SpecialRoom.initForRun();
 			SecretRoom.initForRun();
 			DungeonEvent.initForRun();
+			EventRunState.reset();
 
 			Generator.fullReset();
 
@@ -582,7 +584,7 @@ public class Dungeon {
 		//they can appear on any regular floor while unused events remain
 		if (depth <= 0) return false;
 		if (bossLevel(depth)) return false;
-		if (!DungeonEvent.eventsRemain()) return false;
+		if (!DungeonEvent.anyApplicable()) return false;
 
 		return Random.Int(2) == 0;
 	}
@@ -656,7 +658,8 @@ public class Dungeon {
 			
 			SpecialRoom.storeRoomsInBundle( bundle );
 			SecretRoom.storeRoomsInBundle( bundle );
-			DungeonEvent.storeInBundle( bundle );
+			DungeonEvent.storePoolInBundle( bundle );
+			EventRunState.storeInBundle( bundle );
 			
 			Statistics.storeInBundle( bundle );
 			Notes.storeInBundle( bundle );
@@ -768,7 +771,8 @@ public class Dungeon {
 			
 			SpecialRoom.restoreRoomsFromBundle(bundle);
 			SecretRoom.restoreRoomsFromBundle(bundle);
-			DungeonEvent.restoreFromBundle(bundle);
+			DungeonEvent.restorePoolFromBundle(bundle);
+			EventRunState.restoreFromBundle(bundle);
 
 			generatedLevels.clear();
 			for (int i : bundle.getIntArray(GENERATED_LEVELS)){

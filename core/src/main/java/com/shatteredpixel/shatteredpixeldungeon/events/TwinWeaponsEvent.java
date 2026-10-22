@@ -36,14 +36,19 @@ public class TwinWeaponsEvent extends DungeonEvent {
 	}
 
 	@Override
-	public String[] labels(){
-		return new String[]{ txt("c1"), txt("c2"), txt("c3") };
+	public boolean canAppear(){
+		return inRegion( 1, 2, 3, 4, 5 ) && Dungeon.depth >= 4;
 	}
 
 	@Override
-	public void select( Hero hero, int index ){
+	public int choices( int stage ){
+		return 3;
+	}
+
+	@Override
+	public void apply( Hero hero, int stage, int choice ){
 		Weapon weapon;
-		switch (index){
+		switch (choice){
 			case 0: default:
 				weapon = new Sword();
 				break;
@@ -62,7 +67,7 @@ public class TwinWeaponsEvent extends DungeonEvent {
 		if (!weapon.doPickUp( hero )){
 			Dungeon.level.drop( weapon, hero.pos ).sprite.drop();
 		} else {
-			GLog.i( txt("log") );
+			GLog.i( txt( "log" ) );
 		}
 	}
 }

@@ -20,6 +20,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventHost;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GhostSprite;
@@ -27,18 +28,27 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndEvent;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
-import com.watabou.utils.Reflection;
 
 /**
- * Neutral NPC that offers a single {@link DungeonEvent}, then fades away.
+ * Neutral NPC that carries a single {@link DungeonEvent}, then fades away.
+ * Events themselves are not tied to it, this is just the default placeholder carrier.
  */
-public class EventSpirit extends NPC {
+public class EventSpirit extends NPC implements EventHost {
 
 	{
 		spriteClass = GhostSprite.class;
 	}
 
 	private DungeonEvent event;
+
+	//used by the debug floor to place a specific event without touching the run pool
+	public void setEvent( DungeonEvent event ){
+		this.event = event;
+	}
+
+	public DungeonEvent peekEvent(){
+		return event;
+	}
 
 	@Override
 	public int defenseSkill( Char enemy ) {
@@ -62,6 +72,7 @@ public class EventSpirit extends NPC {
 			event = DungeonEvent.createRandom();
 		}
 		if (event == null){
+			yell( Messages.get( "events.ui.silent" ) );
 			return true;
 		}
 
@@ -73,6 +84,11 @@ public class EventSpirit extends NPC {
 			}
 		});
 		return true;
+	}
+
+	@Override
+	public void finished(){
+		dismiss();
 	}
 
 	public void dismiss() {
@@ -94,7 +110,7 @@ public class EventSpirit extends NPC {
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		if (event != null){
-			bundle.put( EVENT, event.getClass() );
+			bundle.put( EVENT, event );
 		}
 	}
 
@@ -102,7 +118,7 @@ public class EventSpirit extends NPC {
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		if (bundle.contains( EVENT )){
-			event = (DungeonEvent) Reflection.newInstance( bundle.getClass( EVENT ) );
+			event = (DungeonEvent) bundle.get( EVENT );
 		}
 	}
 }

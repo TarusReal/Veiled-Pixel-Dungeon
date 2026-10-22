@@ -25,11 +25,12 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.EventSpirit;
+import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
-import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.EventRoom;
 import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 
@@ -43,17 +44,24 @@ import java.util.ArrayList;
  *
  * <p>No real surface content: no houses, NPCs, shops, or decorated item/mob placement - that's
  * still out of scope for this fork (Fork 2 territory). Instead, depth 0 now doubles as the
- * debug/test floor: it holds one hand-carved {@link EventRoom} with three {@link EventSpirit}s
- * (one per current choice event, so all of them can be tested in a single visit), reached via
- * the "Go anyway" choice on the depth 1 surface stairs. {@link #createMob()} is intentionally
- * left at its {@link Level} default (backed by {@code MobSpawner}/{@code MobRegistry}, exactly
- * like every other level) so a fight here is technically possible if something ever calls
- * {@code spawnMob()}/{@code createMob()} directly - but {@link #addRespawner()} returns
- * {@code null} so nothing spawns automatically beyond the hand-placed spirits.
+ * debug/test floor: it holds a hand-carved event hall with one {@link EventSpirit} per known
+ * {@link DungeonEvent} (assigned deterministically, so every event can be tested in a single
+ * visit), reached via the "Go anyway" choice on the depth 1 surface stairs. {@link #createMob()}
+ * is intentionally left at its {@link Level} default (backed by {@code MobSpawner}/{@code
+ * MobRegistry}, exactly like every other level) so a fight here is technically possible if
+ * something ever calls {@code spawnMob()}/{@code createMob()} directly - but {@link
+ * #addRespawner()} returns {@code null} so nothing spawns automatically beyond the hand-placed
+ * spirits.
  */
 public class Region0Level extends Level {
 
 	private static final int SIZE = 13;
+
+	//event hall: walls at column 7 and the map border, interior 8..11 x 2..10
+	private static final int HALL_LEFT = 7;
+	private static final int HALL_TOP = 1;
+	private static final int HALL_RIGHT = SIZE - 1;
+	private static final int HALL_BOTTOM = SIZE - 2;
 
 	{
 		color1 = 0x534f3e;
@@ -75,33 +83,40 @@ public class Region0Level extends Level {
 
 		setSize(SIZE, SIZE);
 
-		for (int i = 1; i < SIZE - 1; i++) {
+		//main hall
+		for (int i = 1; i <= 6; i++) {
 			for (int j = 1; j < SIZE - 1; j++) {
 				map[i * width() + j] = Terrain.EMPTY;
 			}
 		}
 
-		//debug content: one hand-carved choice-event room, one spirit per current event
-		EventRoom eventRoom = new EventRoom();
-		eventRoom.set( SIZE - 5, 2, SIZE - 1, 6 );
-		eventRoom.paint( this );
-		//door between the main area and the room
-		map[4 * width() + (SIZE - 5)] = Terrain.DOOR;
-		//the room's own spirit sits at the center, add one above and below it
-		int centerCell = pointToCell( eventRoom.center() );
-		addEventSpirit( centerCell - width() );
-		addEventSpirit( centerCell + width() );
+		//event hall, two columns of five spirits
+		for (int i = HALL_TOP + 1; i < HALL_BOTTOM; i++) {
+			for (int j = HALL_LEFT + 1; j < HALL_RIGHT; j++) {
+				map[i * width() + j] = Terrain.EMPTY;
+			}
+		}
 
-		int exit = (SIZE / 2) * width() + SIZE / 2;
+		//door between the main hall and the event hall
+		map[6 * width() + HALL_LEFT] = Terrain.DOOR;
+
+		for (int i = 0; i < DungeonEvent.ALL.length; i++) {
+			DungeonEvent event = (DungeonEvent) Reflection.newInstance(DungeonEvent.ALL[i]);
+			int cell = (2 + i % 5) * width() + (9 + i / 5);
+			addEventSpirit(cell, event);
+		}
+
+		int exit = 6 * width() + 3;
 		map[exit] = Terrain.EXIT;
 		transitions.add(new LevelTransition(this, exit, LevelTransition.Type.REGULAR_EXIT));
 
 		return true;
 	}
 
-	private void addEventSpirit( int cell ) {
+	private void addEventSpirit( int cell, DungeonEvent event ) {
 		EventSpirit spirit = new EventSpirit();
 		spirit.pos = cell;
+		spirit.setEvent( event );
 		mobs.add( spirit );
 	}
 

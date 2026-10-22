@@ -34,15 +34,20 @@ public class BloodAltarEvent extends DungeonEvent {
 	}
 
 	@Override
-	public String[] labels(){
-		return new String[]{ txt("c1"), txt("c2") };
+	public boolean canAppear(){
+		return inRegion( 1, 2, 3, 4, 5 ) && hasHero() && Dungeon.hero.HT >= 25;
 	}
 
 	@Override
-	public void select( Hero hero, int index ){
-		if (index != 0) return;
+	public int choices( int stage ){
+		return 2;
+	}
 
-		hero.HTBoost -= 5;
+	@Override
+	public void apply( Hero hero, int stage, int choice ){
+		if (choice != 0) return;
+
+		hero.HTBoost -= 4;
 		hero.updateHT( false );
 		hero.HP = Math.min( hero.HP, hero.HT );
 
@@ -50,6 +55,6 @@ public class BloodAltarEvent extends DungeonEvent {
 		if (!scroll.doPickUp( hero )){
 			Dungeon.level.drop( scroll, hero.pos ).sprite.drop();
 		}
-		GLog.p( txt("log") );
+		GLog.p( txt( "log" ) );
 	}
 }

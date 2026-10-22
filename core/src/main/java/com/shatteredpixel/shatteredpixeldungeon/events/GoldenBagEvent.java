@@ -33,21 +33,38 @@ public class GoldenBagEvent extends DungeonEvent {
 	}
 
 	@Override
-	public String[] labels(){
-		return new String[]{ txt("c1"), txt("c2") };
+	public boolean canAppear(){
+		return inRegion( 1, 2, 3, 4, 5 );
 	}
 
 	@Override
-	public void select( Hero hero, int index ){
-		if (index != 0) return;
+	public int choices( int stage ){
+		return 2;
+	}
 
-		int amount = 10 + Dungeon.depth * 5;
+	@Override
+	public String label( int stage, int choice ){
+		if (choice == 0){
+			return txt( "choice0_1", goldAmount() );
+		}
+		return super.label( stage, choice );
+	}
+
+	@Override
+	public void apply( Hero hero, int stage, int choice ){
+		if (choice != 0) return;
+
+		int amount = goldAmount();
 		Dungeon.gold += amount;
 		Statistics.goldCollected += amount;
-		GLog.i( txt("log", amount) );
+		GLog.i( txt( "log", amount ) );
 
-		if (Dungeon.level.spawnMob( 4 )){
-			GLog.w( txt("guard") );
+		if (Dungeon.level != null && Dungeon.level.spawnMob( 4 )){
+			GLog.w( txt( "guard" ) );
 		}
+	}
+
+	private int goldAmount(){
+		return 10 + Dungeon.depth * 5;
 	}
 }
