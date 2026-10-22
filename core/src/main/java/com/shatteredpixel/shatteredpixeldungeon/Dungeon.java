@@ -61,6 +61,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegionDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.VaultLevel;
+import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
@@ -240,6 +241,7 @@ public class Dungeon {
 
 			SpecialRoom.initForRun();
 			SecretRoom.initForRun();
+			DungeonEvent.initForRun();
 
 			Generator.fullReset();
 
@@ -575,6 +577,16 @@ public class Dungeon {
 		return false;
 	}
 
+	public static boolean eventRoomNeeded(){
+		//event rooms are independent of the special room pool,
+		//they can appear on any regular floor while unused events remain
+		if (depth <= 0) return false;
+		if (bossLevel(depth)) return false;
+		if (!DungeonEvent.eventsRemain()) return false;
+
+		return Random.Int(2) == 0;
+	}
+
 	private static final String INIT_VER	= "init_ver";
 	public  static final String VERSION		= "version";
 	private static final String SEED		= "seed";
@@ -644,6 +656,7 @@ public class Dungeon {
 			
 			SpecialRoom.storeRoomsInBundle( bundle );
 			SecretRoom.storeRoomsInBundle( bundle );
+			DungeonEvent.storeInBundle( bundle );
 			
 			Statistics.storeInBundle( bundle );
 			Notes.storeInBundle( bundle );
@@ -755,6 +768,7 @@ public class Dungeon {
 			
 			SpecialRoom.restoreRoomsFromBundle(bundle);
 			SecretRoom.restoreRoomsFromBundle(bundle);
+			DungeonEvent.restoreFromBundle(bundle);
 
 			generatedLevels.clear();
 			for (int i : bundle.getIntArray(GENERATED_LEVELS)){

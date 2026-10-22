@@ -55,6 +55,7 @@ class Depth0RoomFactoryGuardTest extends GameTestBase {
 		assertFalse(Dungeon.asNeeded());
 		assertFalse(Dungeon.enchStoneNeeded());
 		assertFalse(Dungeon.labRoomNeeded());
+		assertFalse(Dungeon.eventRoomNeeded());
 		//depth 0 shares depth<5 && Random.Int(4-depth) with floor 1 - same aliasing class
 		assertFalse(Dungeon.intStoneNeeded());
 		assertFalse(Dungeon.trinketCataNeeded());

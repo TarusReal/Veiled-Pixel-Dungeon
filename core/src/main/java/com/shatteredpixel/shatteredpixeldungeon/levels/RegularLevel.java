@@ -61,6 +61,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.builders.LoopBuilder;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.EventRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.MagicalFireRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.PitRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SacrificeRoom;
@@ -161,7 +162,12 @@ public abstract class RegularLevel extends Level {
 		for (int i = 0; i < secrets; i++) {
 			initRooms.add(SecretRoom.createRoom());
 		}
-		
+
+		//event rooms spawn on their own chance, independent of the special room pool
+		if (Dungeon.eventRoomNeeded()) {
+			initRooms.add(new EventRoom());
+		}
+
 		return initRooms;
 	}
 	

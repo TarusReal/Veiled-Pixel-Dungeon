@@ -8,7 +8,7 @@ Für Features mit Spielerfluss ist die beste Formulierung:
 
 - Ausgangssituation
 - Was der Spieler tut
-- Was die Idee genau bewirken soll
+- Was die Idee genau bewirken soll*
 - Wie sie sich im Spiel anfühlt
 
 Keine Implementierungsdetails, keine Systemintegration, keine Randfälle.
