@@ -234,6 +234,9 @@ public class Hero extends Char {
 	
 	public int HTBoost = 0;
 	
+	//permanent blood altar pact: 5% of the theoretical max health is unavailable
+	public boolean bloodSeal = false;
+	
 	private ArrayList<Mob> visibleEnemies;
 
 	//This list is maintained so that some logic checks can be skipped
@@ -251,16 +254,27 @@ public class Hero extends Char {
 		visibleEnemies = new ArrayList<>();
 	}
 	
+	public int theoreticalHT(){
+		int ht = 20 + 5*(lvl-1) + HTBoost;
+		float multiplier = RingOfMight.HTMultiplier(this);
+		ht = Math.round(multiplier * ht);
+		
+		if (buff(ElixirOfMight.HTBoost.class) != null){
+			ht += buff(ElixirOfMight.HTBoost.class).boost();
+		}
+		
+		return ht;
+	}
+	
+	public int sealedHT(){
+		int ht = theoreticalHT();
+		return bloodSeal ? Math.round(ht * 0.05f) : 0;
+	}
+	
 	public void updateHT( boolean boostHP ){
 		int curHT = HT;
 		
-		HT = 20 + 5*(lvl-1) + HTBoost;
-		float multiplier = RingOfMight.HTMultiplier(this);
-		HT = Math.round(multiplier * HT);
-		
-		if (buff(ElixirOfMight.HTBoost.class) != null){
-			HT += buff(ElixirOfMight.HTBoost.class).boost();
-		}
+		HT = theoreticalHT() - sealedHT();
 		
 		if (boostHP){
 			HP += Math.max(HT - curHT, 0);
@@ -295,6 +309,7 @@ public class Hero extends Char {
 	private static final String LEVEL		= "lvl";
 	private static final String EXPERIENCE	= "exp";
 	private static final String HTBOOST     = "htboost";
+	private static final String BLOODSEAL   = "bloodseal";
 	
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -315,6 +330,7 @@ public class Hero extends Char {
 		bundle.put( EXPERIENCE, exp );
 		
 		bundle.put( HTBOOST, HTBoost );
+		bundle.put( BLOODSEAL, bloodSeal );
 
 		belongings.storeInBundle( bundle );
 	}
@@ -326,6 +342,7 @@ public class Hero extends Char {
 		exp = bundle.getInt( EXPERIENCE );
 
 		HTBoost = bundle.getInt(HTBOOST);
+		bloodSeal = bundle.getBoolean(BLOODSEAL);
 
 		super.restoreFromBundle( bundle );
 

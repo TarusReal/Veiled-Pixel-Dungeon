@@ -2,6 +2,7 @@ package com.shatteredpixel.shatteredpixeldungeon.test;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.BloodPriest;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.EventSpirit;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
@@ -11,9 +12,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Sword;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Region0Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.EventRoom;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
 
 import org.junit.jupiter.api.Test;
 
@@ -47,6 +51,7 @@ class EventSmokeTest extends GameTestBase {
 		//seed would rebuild the exact same level over and over - vary the seed per attempt
 		for (int i = 0; i < 40 && spirit == null; i++) {
 			Dungeon.seed = testSeed() + i;
+			DungeonEvent.initForRun(); //each attempt simulates a fresh run, so event rooms keep spawning
 			Dungeon.level = Dungeon.newLevel();
 			for (Mob mob : Dungeon.level.mobs) {
 				if (mob instanceof EventSpirit) {
@@ -66,6 +71,92 @@ class EventSmokeTest extends GameTestBase {
 
 		//the spirit must stand on walkable ground, i.e. the room was painted correctly
 		assertTrue(level.passable[spirit.pos], "event spirit must stand on a passable cell");
+	}
+
+	@Test
+	void bloodAltarEventGetsItsOwnRitualRoom() {
+		Dungeon.hero.HT = 30;
+		Dungeon.hero.HP = 30;
+
+		Level level = null;
+		BloodPriest priest = null;
+
+		//look for a blood altar event room, keep the pool fresh each attempt
+		for (int i = 0; i < 60 && priest == null; i++) {
+			Dungeon.seed = testSeed() + i;
+			Dungeon.depth = 1;
+			DungeonEvent.initForRun();
+			level = Dungeon.newLevel();
+			Dungeon.level = level;
+			for (Mob mob : level.mobs) {
+				if (mob instanceof BloodPriest) {
+					priest = (BloodPriest) mob;
+				}
+			}
+		}
+
+		assertNotNull(priest, "no blood altar room within 60 generations");
+		assertNotNull(priest.peekEvent(), "the blood priest must carry an event");
+		assertEquals("bloodaltar", priest.peekEvent().key(),
+				"the blood priest must only offer the blood altar event");
+
+		EventRoom.BloodRitualFloor floor = null;
+		EventRoom.BloodAltarVis altar = null;
+		for (CustomTilemap tile : level.customTiles) {
+			if (tile instanceof EventRoom.BloodRitualFloor) floor = (EventRoom.BloodRitualFloor) tile;
+			if (tile instanceof EventRoom.BloodAltarVis) altar = (EventRoom.BloodAltarVis) tile;
+		}
+
+		assertNotNull(floor, "the ritual room needs its custom floor");
+		assertNotNull(altar, "the ritual room needs its altar visual");
+		assertEquals(5, floor.tileW, "the ritual floor covers 5x5 tiles");
+		assertEquals(5, floor.tileH, "the ritual floor covers 5x5 tiles");
+
+		int altarCell = altar.tileX + altar.tileY * level.width();
+		assertEquals(Terrain.CUSTOM_DECO, level.map[altarCell], "the altar must stand on a blocking decoration tile");
+		assertFalse(level.passable[altarCell], "the altar must block movement");
+		assertTrue(level.passable[priest.pos], "the blood priest must stand on walkable ground");
+
+		assertEquals(altar.tileX - 2, floor.tileX, "the ritual floor must be centered on the altar");
+		assertEquals(altar.tileY - 2, floor.tileY, "the ritual floor must be centered on the altar");
+	}
+
+	@Test
+	void debugLevelZeroAlsoHoldsTheBloodAltarRoom() {
+		Dungeon.depth = 0;
+		Dungeon.branch = 0;
+		Level level = Dungeon.newLevel();
+		Dungeon.level = level;
+
+		EventRoom.BloodRitualFloor floor = null;
+		EventRoom.BloodAltarVis altar = null;
+		for (CustomTilemap tile : level.customTiles) {
+			if (tile instanceof EventRoom.BloodRitualFloor) floor = (EventRoom.BloodRitualFloor) tile;
+			if (tile instanceof EventRoom.BloodAltarVis) altar = (EventRoom.BloodAltarVis) tile;
+		}
+
+		assertNotNull(floor, "level 0 needs the ritual floor");
+		assertNotNull(altar, "level 0 needs the altar visual");
+		assertEquals(5, floor.tileW);
+		assertEquals(5, floor.tileH);
+		assertEquals(altar.tileX - 2, floor.tileX);
+		assertEquals(altar.tileY - 2, floor.tileY);
+
+		int altarCell = altar.tileX + altar.tileY * level.width();
+		assertEquals(Terrain.CUSTOM_DECO, level.map[altarCell]);
+		assertFalse(level.passable[altarCell], "the altar must block movement");
+
+		int doorCell = (altar.tileY) * level.width() + (altar.tileX - 3);
+		assertEquals(Terrain.DOOR, level.map[doorCell], "the chamber must connect to the event hall");
+
+		BloodPriest priest = null;
+		for (Mob mob : level.mobs) {
+			if (mob instanceof BloodPriest) priest = (BloodPriest) mob;
+		}
+		assertNotNull(priest, "level 0 needs the blood priest in the chamber");
+		assertEquals(altarCell - level.width(), priest.pos, "the priest stands behind the altar");
+		assertTrue(level.passable[priest.pos]);
+		assertEquals("bloodaltar", priest.peekEvent().key());
 	}
 
 	@Test

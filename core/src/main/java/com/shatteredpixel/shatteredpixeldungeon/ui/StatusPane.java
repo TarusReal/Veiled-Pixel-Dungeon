@@ -59,6 +59,7 @@ public class StatusPane extends Component {
 
 	private Image shieldHP;
 	private Image hp;
+	private com.watabou.noosa.ColorBlock hpSealed;
 	private BitmapText hpText;
 	private Button heroInfoOnBar;
 
@@ -141,6 +142,9 @@ public class StatusPane extends Component {
 		else        hp = new Image(asset, 0, 40, 50, 4);
 		add( hp );
 
+		hpSealed = new com.watabou.noosa.ColorBlock(1, 1, 0xFF660099);
+		add(hpSealed);
+
 		hpText = new BitmapText(PixelScene.pixelFont);
 		hpText.alpha(0.6f);
 		add(hpText);
@@ -206,6 +210,9 @@ public class StatusPane extends Component {
 
 			hp.x = shieldHP.x = x + 30;
 			hp.y = shieldHP.y = y + 19;
+			hpSealed.x = hp.x;
+			hpSealed.y = hp.y;
+			hpSealed.height = hp.height();
 
 			hpText.x = hp.x + (128 - hpText.width())/2f;
 			hpText.y = hp.y + 1;
@@ -250,6 +257,9 @@ public class StatusPane extends Component {
 
 			hp.x = shieldHP.x = hpleft;
 			hp.y = shieldHP.y = y + 2;
+			hpSealed.x = hp.x;
+			hpSealed.y = hp.y;
+			hpSealed.height = hp.height();
 
 			hpText.scale.set(PixelScene.align(0.5f));
 			hpText.x = hp.x + 1;
@@ -293,6 +303,8 @@ public class StatusPane extends Component {
 		int health = Dungeon.hero.HP;
 		int shield = Dungeon.hero.shielding();
 		int max = Dungeon.hero.HT;
+		int theo = Dungeon.hero.theoreticalHT();
+		int sealed = Dungeon.hero.sealedHT();
 
 		if (!Dungeon.hero.isAlive()) {
 			avatar.tint(0x000000, 0.5f);
@@ -307,8 +319,9 @@ public class StatusPane extends Component {
 			avatar.resetColor();
 		}
 
-		float healthPercent = health/(float)max;
-		float shieldPercent = shield/(float)max;
+		float healthPercent = max > 0 ? health/(float)max : 0;
+		float shieldPercent = max > 0 ? shield/(float)max : 0;
+		float sealedPercent = theo > 0 ? sealed/(float)theo : 0;
 
 		if (healthPercent + shieldPercent > 1f){
 			float excess = healthPercent + shieldPercent;
@@ -318,12 +331,22 @@ public class StatusPane extends Component {
 
 		hp.scale.x = healthPercent;
 		shieldHP.scale.x = healthPercent + shieldPercent;
+		if (hpSealed != null && large) {
+			hpSealed.x = hp.x + hp.width * (healthPercent + shieldPercent);
+			hpSealed.width = Math.max(0, hp.width * sealedPercent);
+		} else if (hpSealed != null) {
+			hpSealed.x = hp.x + hp.width() * (healthPercent + shieldPercent);
+			hpSealed.width = Math.max(0, hp.width() * sealedPercent);
+		}
+		if (hpSealed != null) hpSealed.visible = sealed > 0;
 
-		if (oldHP != health || oldShield != shield || oldMax != max){
+		if (oldHP != health || oldShield != shield || oldMax != max || sealed != (Dungeon.hero.sealedHT())){
 			if (shield <= 0) {
-				hpText.text(health + "/" + max);
+				if (sealed > 0) hpText.text(health + "/" + max + "-" + sealed);
+				else hpText.text(health + "/" + max);
 			} else {
-				hpText.text(health + "+" + shield + "/" + max);
+				if (sealed > 0) hpText.text(health + "+" + shield + "/" + max + "-" + sealed);
+				else hpText.text(health + "+" + shield + "/" + max);
 			}
 			oldHP = health;
 			oldShield = shield;
@@ -388,6 +411,7 @@ public class StatusPane extends Component {
 		avatar.alpha(value);
 		shieldHP.alpha(value);
 		hp.alpha(value);
+		if (hpSealed != null) hpSealed.alpha(value);
 		hpText.alpha(0.6f*value);
 		exp.alpha(value);
 		if (expText != null) expText.alpha(0.6f*value);

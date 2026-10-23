@@ -20,6 +20,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.watabou.noosa.Image;
 
 /**
  * Variant of {@link WndOptions} with smaller button text and buttons that grow
@@ -32,6 +33,10 @@ class WndCompactOptions extends WndOptions {
 
 	WndCompactOptions( String title, String message, String... options ){
 		super( title, message, options );
+	}
+
+	WndCompactOptions( Image icon, String title, String message, String... options ){
+		super( icon, title, message, options );
 	}
 
 	@Override

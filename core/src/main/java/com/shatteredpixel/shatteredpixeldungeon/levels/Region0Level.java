@@ -24,11 +24,14 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.BloodPriest;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.EventSpirit;
+import com.shatteredpixel.shatteredpixeldungeon.events.BloodAltarEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.EventRoom;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
@@ -46,22 +49,23 @@ import java.util.ArrayList;
  * still out of scope for this fork (Fork 2 territory). Instead, depth 0 now doubles as the
  * debug/test floor: it holds a hand-carved event hall with one {@link EventSpirit} per known
  * {@link DungeonEvent} (assigned deterministically, so every event can be tested in a single
- * visit), reached via the "Go anyway" choice on the depth 1 surface stairs. {@link #createMob()}
- * is intentionally left at its {@link Level} default (backed by {@code MobSpawner}/{@code
- * MobRegistry}, exactly like every other level) so a fight here is technically possible if
- * something ever calls {@code spawnMob()}/{@code createMob()} directly - but {@link
- * #addRespawner()} returns {@code null} so nothing spawns automatically beyond the hand-placed
- * spirits.
+ * visit), reached via the "Go anyway" choice on the depth 1 surface stairs. The blood altar
+ * event sits in its own ritual chamber east of the hall, using the same visuals as the random
+ * event room. {@link #createMob()} is intentionally left at its {@link Level} default (backed
+ * by {@code MobSpawner}/{@code MobRegistry}, exactly like every other level) so a fight here is
+ * technically possible if something ever calls {@code spawnMob()}/{@code createMob()} directly
+ * - but {@link #addRespawner()} returns {@code null} so nothing spawns automatically beyond the
+ * hand-placed spirits.
  */
 public class Region0Level extends Level {
 
-	private static final int SIZE = 13;
+	private static final int SIZE = 19;
 
-	//event hall: walls at column 7 and the map border, interior 8..11 x 2..10
+	//event hall: walls at column 7 and column 12, interior 8..11 x 2..10
 	private static final int HALL_LEFT = 7;
 	private static final int HALL_TOP = 1;
-	private static final int HALL_RIGHT = SIZE - 1;
-	private static final int HALL_BOTTOM = SIZE - 2;
+	private static final int HALL_RIGHT = 12;
+	private static final int HALL_BOTTOM = 11;
 
 	{
 		color1 = 0x534f3e;
@@ -85,12 +89,12 @@ public class Region0Level extends Level {
 
 		//main hall
 		for (int i = 1; i <= 6; i++) {
-			for (int j = 1; j < SIZE - 1; j++) {
+			for (int j = 1; j <= HALL_BOTTOM; j++) {
 				map[i * width() + j] = Terrain.EMPTY;
 			}
 		}
 
-		//event hall, two columns of five spirits
+		//event hall, two columns of spirits
 		for (int i = HALL_TOP + 1; i < HALL_BOTTOM; i++) {
 			for (int j = HALL_LEFT + 1; j < HALL_RIGHT; j++) {
 				map[i * width() + j] = Terrain.EMPTY;
@@ -100,10 +104,17 @@ public class Region0Level extends Level {
 		//door between the main hall and the event hall
 		map[6 * width() + HALL_LEFT] = Terrain.DOOR;
 
-		for (int i = 0; i < DungeonEvent.ALL.length; i++) {
-			DungeonEvent event = (DungeonEvent) Reflection.newInstance(DungeonEvent.ALL[i]);
-			int cell = (2 + i % 5) * width() + (9 + i / 5);
-			addEventSpirit(cell, event);
+		//the blood altar gets its own ritual chamber instead of a spot in the hall
+		int slot = 0;
+		for (Class<?> type : DungeonEvent.ALL) {
+			DungeonEvent event = (DungeonEvent) Reflection.newInstance(type);
+			if (event instanceof BloodAltarEvent) {
+				buildBloodAltarRoom();
+			} else {
+				int cell = (2 + slot % 5) * width() + (9 + slot / 5);
+				addEventSpirit(cell, event);
+				slot++;
+			}
 		}
 
 		int exit = 6 * width() + 3;
@@ -113,8 +124,38 @@ public class Region0Level extends Level {
 		return true;
 	}
 
+	/**
+	 * A hand-carved 7x7 ritual chamber east of the event hall, using the same visuals as
+	 * the random {@link EventRoom}.
+	 */
+	private void buildBloodAltarRoom() {
+		int left = HALL_RIGHT;
+		int top = 2;
+		int right = SIZE - 1;
+		int bottom = top + 6;
+
+		for (int y = top; y <= bottom; y++) {
+			for (int x = left; x <= right; x++) {
+				boolean wall = x == left || x == right || y == top || y == bottom;
+				map[y * width() + x] = wall ? Terrain.WALL : Terrain.EMPTY_SP;
+			}
+		}
+
+		//shared door with the event hall, level with the altar
+		int centerX = (left + right) / 2;
+		int centerY = (top + bottom) / 2;
+		map[centerY * width() + left] = Terrain.DOOR;
+
+		EventRoom.furnishBloodAltar(this, centerX, centerY, top);
+
+		BloodPriest priest = new BloodPriest();
+		priest.pos = (centerY - 1) * width() + centerX;
+		priest.setEvent(new BloodAltarEvent());
+		mobs.add(priest);
+	}
+
 	private void addEventSpirit( int cell, DungeonEvent event ) {
-		EventSpirit spirit = new EventSpirit();
+		EventSpirit spirit = event instanceof BloodAltarEvent ? new BloodPriest() : new EventSpirit();
 		spirit.pos = cell;
 		spirit.setEvent( event );
 		mobs.add( spirit );

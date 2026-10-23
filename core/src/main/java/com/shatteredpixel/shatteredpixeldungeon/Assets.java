@@ -60,6 +60,8 @@ public class Assets {
 		public static final String CAVES_BOSS       = "environment/custom_tiles/caves_boss.png";
 		public static final String CITY_QUEST        = "environment/custom_tiles/city_quest.png";
 		public static final String CITY_BOSS        = "environment/custom_tiles/city_boss.png";
+		public static final String BLOOD_ALTAR      = "environment/custom_tiles/blood_altar.png";
+		public static final String BLOOD_ALTAR_FLOOR = "environment/custom_tiles/blood_altar_floor.png";
 		public static final String HALLS_SP         = "environment/custom_tiles/halls_special.png";
 	}
 	
@@ -305,6 +307,7 @@ public class Assets {
 		public static final String YOG      = "sprites/yog.png";
 		public static final String LARVA    = "sprites/larva.png";
 		public static final String GHOST    = "sprites/ghost.png";
+		public static final String BLOOD_PRIEST = "sprites/blood_priest.png";
 		public static final String MAKER    = "sprites/wandmaker.png";
 		public static final String TROLL    = "sprites/blacksmith.png";
 		public static final String IMP      = "sprites/demon.png";

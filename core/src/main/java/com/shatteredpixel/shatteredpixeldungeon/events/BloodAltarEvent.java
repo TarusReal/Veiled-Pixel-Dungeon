@@ -35,7 +35,7 @@ public class BloodAltarEvent extends DungeonEvent {
 
 	@Override
 	public boolean canAppear(){
-		return inRegion( 1, 2, 3, 4, 5 ) && hasHero() && Dungeon.hero.HT >= 25;
+		return inRegion( 1, 2, 3, 4, 5 ) && hasHero() && !Dungeon.hero.bloodSeal;
 	}
 
 	@Override
@@ -47,8 +47,10 @@ public class BloodAltarEvent extends DungeonEvent {
 	public void apply( Hero hero, int stage, int choice ){
 		if (choice != 0) return;
 
-		hero.HTBoost -= 4;
-		hero.updateHT( false );
+		if (hero.bloodSeal) return;
+		
+		hero.bloodSeal = true;
+		hero.updateHT( true );
 		hero.HP = Math.min( hero.HP, hero.HT );
 
 		Item scroll = new ScrollOfUpgrade();
