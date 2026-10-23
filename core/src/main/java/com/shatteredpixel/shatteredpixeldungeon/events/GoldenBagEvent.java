@@ -65,6 +65,6 @@ public class GoldenBagEvent extends DungeonEvent {
 	}
 
 	private int goldAmount(){
-		return 10 + Dungeon.depth * 5;
+		return 100 + Dungeon.depth * 25;
 	}
 }

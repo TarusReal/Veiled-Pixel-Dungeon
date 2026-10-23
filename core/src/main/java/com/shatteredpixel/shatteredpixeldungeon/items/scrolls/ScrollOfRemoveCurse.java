@@ -120,7 +120,13 @@ public class ScrollOfRemoveCurse extends InventoryScroll {
 		for (Item item : items) {
 			if (item != null) {
 				item.cursedKnown = true;
-				if (item.cursed) {
+				if (item instanceof Weapon && ((Weapon) item).curseCount > 0) {
+					((Weapon) item).curseCount--;
+					if (((Weapon) item).curseCount <= 0) {
+						item.cursed = false;
+					}
+					procced = true;
+				} else if (item.cursed) {
 					procced = true;
 					item.cursed = false;
 				}

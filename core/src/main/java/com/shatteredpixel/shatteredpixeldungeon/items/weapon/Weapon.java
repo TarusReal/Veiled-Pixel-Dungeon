@@ -126,7 +126,7 @@ abstract public class Weapon extends KindOfWeapon {
 	public boolean enchantHardened = false;
 	public boolean curseInfusionBonus = false;
 	public boolean masteryPotionBonus = false;
-	
+	public int curseCount = 0; //strong curse: number of Remove Curse scrolls needed	
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
 
@@ -224,6 +224,7 @@ abstract public class Weapon extends KindOfWeapon {
 	private static final String CURSE_INFUSION_BONUS = "curse_infusion_bonus";
 	private static final String MASTERY_POTION_BONUS = "mastery_potion_bonus";
 	private static final String AUGMENT	        = "augment";
+	private static final String CURSE_COUNT      = "curse_count";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -235,6 +236,7 @@ abstract public class Weapon extends KindOfWeapon {
 		bundle.put( CURSE_INFUSION_BONUS, curseInfusionBonus );
 		bundle.put( MASTERY_POTION_BONUS, masteryPotionBonus );
 		bundle.put( AUGMENT, augment );
+		bundle.put( CURSE_COUNT, curseCount );
 	}
 	
 	@Override
@@ -248,6 +250,7 @@ abstract public class Weapon extends KindOfWeapon {
 		masteryPotionBonus = bundle.getBoolean( MASTERY_POTION_BONUS );
 
 		augment = bundle.getEnum(AUGMENT, Augment.class);
+		curseCount = bundle.getInt( CURSE_COUNT );
 	}
 	
 	@Override

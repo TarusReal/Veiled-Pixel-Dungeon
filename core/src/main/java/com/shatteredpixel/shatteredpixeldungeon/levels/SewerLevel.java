@@ -150,13 +150,17 @@ public class SewerLevel extends RegularLevel {
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
-						//OK closes the dialog, "Go anyway" / "Doch" ascends to the level 0 debug floor
+						//OK closes the dialog, "Go anyway" / "Doch" ascends to the surface,
+						//"Dev level" ascends to the level 0 debug floor
 						GameScene.show( new WndOptions( (String) null, Messages.get(hero, "leave"),
 								Messages.get(SewerLevel.class, "leave_ok"),
-								Messages.get(SewerLevel.class, "leave_go")) {
+								Messages.get(SewerLevel.class, "leave_go"),
+								Messages.get(SewerLevel.class, "leave_dev")) {
 							@Override
 							protected void onSelect( int index ) {
 								if (index == 1) {
+									ascendToSurfaceLevel( transition );
+								} else if (index == 2) {
 									ascendToDebugLevel( transition );
 								}
 							}
@@ -187,11 +191,24 @@ public class SewerLevel extends RegularLevel {
 		}
 	}
 
+	//"Go anyway" / "Doch" ascends to the surface (branch 2) instead of the real exit.
+	//arrival there falls back to that level's only transition, its exit back to depth 1
+	private static void ascendToSurfaceLevel( LevelTransition from ) {
+		LevelTransition toSurfaceLevel = new LevelTransition( Dungeon.level, from.cell(),
+				LevelTransition.Type.SURFACE, SurfaceLevel.DEPTH, SurfaceLevel.BRANCH,
+				LevelTransition.Type.REGULAR_ENTRANCE );
+
+		Level.beforeTransition();
+		InterlevelScene.curTransition = toSurfaceLevel;
+		InterlevelScene.mode = InterlevelScene.Mode.ASCEND;
+		Game.switchScene( InterlevelScene.class );
+	}
+
 	//ascends the surface stairs into the level 0 debug floor instead of the surface.
 	//arrival on level 0 falls back to its only transition, the exit back to depth 1
 	private static void ascendToDebugLevel( LevelTransition from ) {
 		LevelTransition toDebugLevel = new LevelTransition( Dungeon.level, from.cell(),
-				LevelTransition.Type.SURFACE, 0, 0, LevelTransition.Type.REGULAR_ENTRANCE );
+				LevelTransition.Type.SURFACE, SurfaceLevel.DEPTH, 0, LevelTransition.Type.REGULAR_ENTRANCE );
 
 		Level.beforeTransition();
 		InterlevelScene.curTransition = toDebugLevel;

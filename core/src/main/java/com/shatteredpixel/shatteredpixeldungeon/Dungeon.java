@@ -60,6 +60,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegionDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SurfaceLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.VaultLevel;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventRunState;
@@ -328,6 +329,9 @@ public class Dungeon {
 				default:
 					level = new DeadEndLevel();
 			}
+		} else if (branch == 2 && depth == 0) {
+			//the surface reached by insisting on the depth 1 surface stairs
+			level = new SurfaceLevel();
 		} else {
 			level = new DeadEndLevel();
 		}
