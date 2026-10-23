@@ -43,7 +43,12 @@ public class ShatteredPixelDungeon extends Game {
 	public static final int v3_1_1 = 850;
 	public static final int v3_2_5 = 877;
 	public static final int v3_3_0 = 883;
-	
+
+	//must match appVersionCode in build.gradle. Used as the versionCode fallback when a launch
+	//method provides no version (e.g. starting DesktopLauncher from the IDE), because saving
+	//with versionCode 0 makes Level.restoreFromBundle reject the save as "old save".
+	public static final int v3_3_8 = 896;
+
 	public ShatteredPixelDungeon( PlatformSupport platform ) {
 		super( sceneClass == null ? WelcomeScene.class : sceneClass, platform );
 

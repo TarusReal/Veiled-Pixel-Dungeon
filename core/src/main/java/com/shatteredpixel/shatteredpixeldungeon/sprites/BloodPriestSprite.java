@@ -30,7 +30,7 @@ public class BloodPriestSprite extends MobSprite {
 		TextureFilm frames = new TextureFilm( texture, 12, 15 );
 
 		idle = new Animation( 2, true );
-		idle.frames( frames, 0, 1 );
+		idle.frames( frames, 0, 1, 2, 3 );
 
 		run = new Animation( 10, true );
 		run.frames( frames, 2, 3 );

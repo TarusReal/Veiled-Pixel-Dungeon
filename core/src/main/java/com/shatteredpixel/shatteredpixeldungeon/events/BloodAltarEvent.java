@@ -35,7 +35,8 @@ public class BloodAltarEvent extends DungeonEvent {
 
 	@Override
 	public boolean canAppear(){
-		return inRegion( 1, 2, 3, 4, 5 ) && hasHero() && !Dungeon.hero.bloodSeal;
+		return inRegion( 1, 2, 3, 4, 5 ) && hasHero()
+				&& !Dungeon.hero.bloodSeal && Dungeon.hero.theoreticalHT() >= 25;
 	}
 
 	@Override

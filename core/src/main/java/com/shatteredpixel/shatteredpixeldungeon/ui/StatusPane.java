@@ -142,7 +142,8 @@ public class StatusPane extends Component {
 		else        hp = new Image(asset, 0, 40, 50, 4);
 		add( hp );
 
-		hpSealed = new com.watabou.noosa.ColorBlock(1, 1, 0xFF660099);
+		//translucent black-purple segment marking the health locked away by the blood altar
+		hpSealed = new com.watabou.noosa.ColorBlock(1, 1, 0x694A0B6B);
 		add(hpSealed);
 
 		hpText = new BitmapText(PixelScene.pixelFont);
@@ -210,9 +211,7 @@ public class StatusPane extends Component {
 
 			hp.x = shieldHP.x = x + 30;
 			hp.y = shieldHP.y = y + 19;
-			hpSealed.x = hp.x;
-			hpSealed.y = hp.y;
-			hpSealed.height = hp.height();
+			hpSealed.size(0, hp.height);
 
 			hpText.x = hp.x + (128 - hpText.width())/2f;
 			hpText.y = hp.y + 1;
@@ -257,9 +256,7 @@ public class StatusPane extends Component {
 
 			hp.x = shieldHP.x = hpleft;
 			hp.y = shieldHP.y = y + 2;
-			hpSealed.x = hp.x;
-			hpSealed.y = hp.y;
-			hpSealed.height = hp.height();
+			hpSealed.size(0, hp.height);
 
 			hpText.scale.set(PixelScene.align(0.5f));
 			hpText.x = hp.x + 1;
@@ -319,34 +316,35 @@ public class StatusPane extends Component {
 			avatar.resetColor();
 		}
 
-		float healthPercent = max > 0 ? health/(float)max : 0;
-		float shieldPercent = max > 0 ? shield/(float)max : 0;
+		//the full bar length represents the theoretical max, so the sealed
+		//portion shows up permanently at the right end of the bar
+		float healthPercent = theo > 0 ? health/(float)theo : 0;
+		float shieldPercent = theo > 0 ? shield/(float)theo : 0;
+		float availPercent  = theo > 0 ? max/(float)theo : 1f;
 		float sealedPercent = theo > 0 ? sealed/(float)theo : 0;
 
-		if (healthPercent + shieldPercent > 1f){
+		if (healthPercent + shieldPercent > availPercent){
 			float excess = healthPercent + shieldPercent;
-			healthPercent /= excess;
-			shieldPercent /= excess;
+			healthPercent *= availPercent/excess;
+			shieldPercent *= availPercent/excess;
 		}
 
 		hp.scale.x = healthPercent;
 		shieldHP.scale.x = healthPercent + shieldPercent;
-		if (hpSealed != null && large) {
-			hpSealed.x = hp.x + hp.width * (healthPercent + shieldPercent);
-			hpSealed.width = Math.max(0, hp.width * sealedPercent);
-		} else if (hpSealed != null) {
-			hpSealed.x = hp.x + hp.width() * (healthPercent + shieldPercent);
-			hpSealed.width = Math.max(0, hp.width() * sealedPercent);
+		if (hpSealed != null){
+			//the segment always reaches one pixel further left, so
+			//rounding can never leave a gap to the health fill
+			hpSealed.x = hp.x + hp.width * availPercent - 1;
+			hpSealed.y = hp.y;
+			hpSealed.size(Math.max(0, hp.width * sealedPercent) + 1, hp.height);
+			hpSealed.visible = sealed > 0;
 		}
-		if (hpSealed != null) hpSealed.visible = sealed > 0;
 
-		if (oldHP != health || oldShield != shield || oldMax != max || sealed != (Dungeon.hero.sealedHT())){
+		if (oldHP != health || oldShield != shield || oldMax != max){
 			if (shield <= 0) {
-				if (sealed > 0) hpText.text(health + "/" + max + "-" + sealed);
-				else hpText.text(health + "/" + max);
+				hpText.text(health + "/" + max);
 			} else {
-				if (sealed > 0) hpText.text(health + "+" + shield + "/" + max + "-" + sealed);
-				else hpText.text(health + "+" + shield + "/" + max);
+				hpText.text(health + "+" + shield + "/" + max);
 			}
 			oldHP = health;
 			oldShield = shield;

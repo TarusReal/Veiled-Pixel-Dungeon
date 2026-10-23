@@ -5,6 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.BloodPriest;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.EventSpirit;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
+import com.shatteredpixel.shatteredpixeldungeon.events.BloodAltarEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventRunState;
 import com.shatteredpixel.shatteredpixeldungeon.events.MirrorEvent;
@@ -75,8 +76,9 @@ class EventSmokeTest extends GameTestBase {
 
 	@Test
 	void bloodAltarEventGetsItsOwnRitualRoom() {
-		Dungeon.hero.HT = 30;
-		Dungeon.hero.HP = 30;
+		//the altar only appears once the hero has a real amount of health to sacrifice
+		Dungeon.hero.lvl = 5;
+		Dungeon.hero.updateHT( false );
 
 		Level level = null;
 		BloodPriest priest = null;
@@ -328,6 +330,91 @@ class EventSmokeTest extends GameTestBase {
 
 		assertTrue(raised > base, "the pact must make shop prices go up");
 		EventRunState.reset();
+	}
+
+	@Test
+	void bloodAltarAppliesAFivePercentSeal() {
+		com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero hero = Dungeon.hero;
+		hero.lvl = 5;
+		hero.updateHT( false ); //theoretical max: 40
+		hero.HP = hero.HT;
+
+		BloodAltarEvent event = new BloodAltarEvent();
+		event.apply( hero, 0, 0 );
+
+		assertTrue(hero.bloodSeal, "the blood altar must seal part of the hero's health");
+		assertEquals(40, hero.theoreticalHT(), "the seal must not lower the theoretical max");
+		assertEquals(38, hero.HT, "5% of the theoretical max must be locked away");
+		assertEquals(2, hero.sealedHT());
+		assertEquals(38, hero.HP, "current health must be clamped to the sealed max");
+	}
+
+	@Test
+	void bloodSealLocksFivePercentAndScalesWithMaxHealthGains() {
+		com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero hero = Dungeon.hero;
+
+		assertTrue(hero.theoreticalHT() >= 0);
+		assertFalse(hero.bloodSeal);
+
+		//the lock rounds up: 5% of 21 are 2, so only 19 remain available
+		hero.bloodSeal = true;
+		hero.HTBoost = 1;
+		hero.updateHT( false );
+		assertEquals(21, hero.theoreticalHT());
+		assertEquals(2, hero.sealedHT());
+		assertEquals(19, hero.HT);
+		hero.HTBoost = 0;
+
+		hero.lvl = 5;
+		hero.updateHT( false );
+		assertEquals(40, hero.theoreticalHT());
+		assertEquals(38, hero.HT);
+		assertEquals(2, hero.sealedHT());
+
+		hero.HP = hero.HT;
+		hero.updateHT( false );
+
+		assertEquals(38, hero.HP);
+
+		//the lock stays at 5% when the hero later gains max health
+		hero.lvl = 10;
+		hero.updateHT( true );
+		assertEquals(65, hero.theoreticalHT());
+		assertEquals(61, hero.HT);
+		assertEquals(4, hero.sealedHT());
+
+		//and it survives save and load
+		Bundle bundle = new Bundle();
+		hero.storeInBundle( bundle );
+
+		com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero loaded =
+				new com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero();
+		loaded.restoreFromBundle( bundle );
+
+		assertTrue(loaded.bloodSeal, "the sealed state must survive save and load");
+		assertEquals(65, loaded.theoreticalHT());
+		assertEquals(61, loaded.HT);
+	}
+
+	@Test
+	void bloodAltarTilesAreExaminable() {
+		Class<?> floor = EventRoom.BloodRitualFloor.class;
+		Class<?> altar = EventRoom.BloodAltarVis.class;
+
+		for (Class<?> type : new Class<?>[]{floor, altar}) {
+			assertNotEquals(Messages.NO_TEXT_FOUND, Messages.get(type, "name"), type.getSimpleName() + " name");
+			assertNotEquals(Messages.NO_TEXT_FOUND, Messages.get(type, "desc"), type.getSimpleName() + " desc");
+		}
+
+		try {
+			Messages.setup(Languages.GERMAN);
+			for (Class<?> type : new Class<?>[]{floor, altar}) {
+				assertNotEquals(Messages.NO_TEXT_FOUND, Messages.get(type, "name"), type.getSimpleName() + " name (de)");
+				assertNotEquals(Messages.NO_TEXT_FOUND, Messages.get(type, "desc"), type.getSimpleName() + " desc (de)");
+			}
+		} finally {
+			Messages.setup(Languages.ENGLISH);
+		}
 	}
 
 	private void assertTextsResolve(DungeonEvent event, int stage) {

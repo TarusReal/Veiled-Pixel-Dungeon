@@ -135,7 +135,10 @@ public class DesktopLauncher {
 		try {
 			Game.versionCode = Integer.parseInt(runtimeVersionCode);
 		} catch (NumberFormatException e) {
-			Game.versionCode = 0;
+			//no manifest and no -DImplementation-Version (e.g. starting main() from an IDE).
+			//0 would be written into saves and Level.restoreFromBundle would then reject them
+			//as "old save", so fall back to the current version instead
+			Game.versionCode = ShatteredPixelDungeon.v3_3_8;
 		}
 
 		if (UpdateImpl.supportsUpdates()){

@@ -25,7 +25,9 @@ import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
+import com.watabou.noosa.Image;
 import com.watabou.noosa.Tilemap;
 import com.watabou.utils.Point;
 
@@ -121,6 +123,25 @@ public class EventRoom extends SpecialRoom {
 			v.map( mapSimpleImage( 0, 0, TEX_WIDTH ), tileW );
 			return v;
 		}
+
+		@Override
+		public Image image( int tileX, int tileY ) {
+			//the center cell reports itself as the altar, never as part of this floor
+			if (tileX == 2 && tileY == 2){
+				return null;
+			}
+			return super.image( tileX, tileY );
+		}
+
+		@Override
+		public String name( int tileX, int tileY ) {
+			return Messages.get( this, "name" );
+		}
+
+		@Override
+		public String desc( int tileX, int tileY ) {
+			return Messages.get( this, "desc" );
+		}
 	}
 
 	public static class BloodAltarVis extends CustomTilemap {
@@ -141,6 +162,16 @@ public class EventRoom extends SpecialRoom {
 			//the gravestone art is bottom-anchored in its tile, nudge it up one pixel
 			v.y -= 1;
 			return v;
+		}
+
+		@Override
+		public String name( int tileX, int tileY ) {
+			return Messages.get( this, "name" );
+		}
+
+		@Override
+		public String desc( int tileX, int tileY ) {
+			return Messages.get( this, "desc" );
 		}
 	}
 }

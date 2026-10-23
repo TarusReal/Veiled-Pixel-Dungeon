@@ -267,14 +267,19 @@ public class Hero extends Char {
 	}
 	
 	public int sealedHT(){
-		int ht = theoreticalHT();
-		return bloodSeal ? Math.round(ht * 0.05f) : 0;
+		return sealedHT( theoreticalHT() );
+	}
+	
+	public int sealedHT( int theoreticalHT ){
+		//5% of the theoretical max, rounded up
+		return bloodSeal ? (theoreticalHT * 5 + 99) / 100 : 0;
 	}
 	
 	public void updateHT( boolean boostHP ){
 		int curHT = HT;
 		
-		HT = theoreticalHT() - sealedHT();
+		int theoretical = theoreticalHT();
+		HT = theoretical - sealedHT( theoretical );
 		
 		if (boostHP){
 			HP += Math.max(HT - curHT, 0);
