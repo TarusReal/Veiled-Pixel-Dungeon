@@ -20,6 +20,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventHost;
+import com.shatteredpixel.shatteredpixeldungeon.events.GoldenBagEvent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 
@@ -52,9 +53,15 @@ public class WndEvent extends WndCompactOptions {
 		int stage = event.stage();
 		event.apply( Dungeon.hero, stage, index );
 
-		String result = event.result( stage, index );
 		int next = event.nextStage( stage, index );
 
+		//golden bag: leaving it does nothing, just close the dialog
+		if (event instanceof GoldenBagEvent && index == 1){
+			host.finished();
+			return;
+		}
+
+		String result = event.result( stage, index );
 		GameScene.show( new WndResult( host, event, result, next ) );
 	}
 

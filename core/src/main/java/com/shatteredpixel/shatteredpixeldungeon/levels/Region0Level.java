@@ -26,8 +26,10 @@ import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.BloodPriest;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.EventSpirit;
+import com.shatteredpixel.shatteredpixeldungeon.items.GoldenBagItem;
 import com.shatteredpixel.shatteredpixeldungeon.events.BloodAltarEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.GoldenBagEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
@@ -110,6 +112,8 @@ public class Region0Level extends Level {
 			DungeonEvent event = (DungeonEvent) Reflection.newInstance(type);
 			if (event instanceof BloodAltarEvent) {
 				buildBloodAltarRoom();
+			} else if (event instanceof GoldenBagEvent) {
+				buildGoldenBagRoom( event );
 			} else {
 				int cell = (2 + slot % 5) * width() + (9 + slot / 5);
 				addEventSpirit(cell, event);
@@ -152,6 +156,32 @@ public class Region0Level extends Level {
 		priest.pos = (centerY - 1) * width() + centerX;
 		priest.setEvent(new BloodAltarEvent());
 		mobs.add(priest);
+	}
+
+	/**
+	 * A hand-carved 7x7 room holding the golden bag item on the ground.
+	 */
+	private void buildGoldenBagRoom( DungeonEvent event ) {
+		int left = 8;
+		int top = 11;
+		int right = left + 6;
+		int bottom = top + 6;
+
+		for (int y = top; y <= bottom; y++) {
+			for (int x = left; x <= right; x++) {
+				boolean wall = x == left || x == right || y == top || y == bottom;
+				map[y * width() + x] = wall ? Terrain.WALL : Terrain.EMPTY_SP;
+			}
+		}
+
+		int centerX = (left + right) / 2;
+		//door connecting to the event hall
+		map[top * width() + centerX] = Terrain.DOOR;
+
+		int centerY = (top + bottom) / 2;
+		GoldenBagItem bag = new GoldenBagItem();
+		bag.setEvent( event );
+		drop( bag, centerY * width() + centerX );
 	}
 
 	private void addEventSpirit( int cell, DungeonEvent event ) {

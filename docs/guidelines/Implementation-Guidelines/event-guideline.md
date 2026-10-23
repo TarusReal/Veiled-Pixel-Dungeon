@@ -18,12 +18,11 @@ Gültig für `core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/events
 ## Special room & NPC
 
 - Räume: `rooms.special.SpecialRoom` (mind. 7x7). Beim `paint()` wird das Event gezogen (`DungeonEvent.createRandom()`), nicht beim Spawnen: übersprungene Events gelten für den Run als vergeben.
-- Event-Träger: `EventSpirit` (generischer Geist) oder eigene NPC-Unterklasse. Blutaltar-Muster: `BloodPriest` (`extends EventSpirit`) mit eigenem Sprite (`sprites/BloodPriestSprite.java`), das Event wird via `setEvent(event)` beim Paint gesetzt.
-- Dialog: Wandmaker-Stil. `WndXXX extends WndCompactOptions` (kompakt, kleine Buttons), Ergebnisbestätigung über `WndQuest`; beim Verlassen ruft das Herausfrage-Fenster `priest.finished()`; das Verschwinden nutzt `ElmoParticle.FACTORY` wie beim Shopkeeper.
+- Event-Träger: `EventSpirit` (generischer Geist) oder eigene NPC-Unterklasse oder ein Item oder ein Tile. Blutaltar-Muster: `BloodPriest` (`extends EventSpirit`) mit eigenem Sprite (zum Beispiel `sprites/BloodPriestSprite.java`), das Event wird via `setEvent(event)` beim Paint gesetzt.
 - Bestiary: NPC-Klasse in eine Bestiary-Liste aufnehmen (z. B. `Bestiary.NEUTRAL`), dazu `actors.<name>.name/desc/discover_hint` EN/DE.
 
 ## Blutaltar-spezifische Anmerkungen (Referenz)
-
+Spielt keine Rolle für andere Events, aber die Umsetzung ist ein gutes Beispiel für die Guidelines:
 - **Ritualkammer**: 5x5 Boden (`EventRoom.BloodRitualFloor`, Textur 80 px breit = 5 Tiles); die Altar-Grafik (16 px) steht auf `Terrain.CUSTOM_DECO` (unsichtbar + solide). `EventRoom.furnishBloodAltar(level, cx, cy, wallY)` baut Boden, Altar und Rückwand gemeinsam, damit Zufallsraum und Debug-Ebene identisches Layout bekommen.
 - **Untersuchbarkeit**: `BloodRitualFloor.image()` gibt auf der Altar-Zelle `null` zurück, damit die Abfrage den Altar statt des Bodens findet; beide Klassen überschreiben `name()`/`desc()`. Schlüssel in `levels.properties` + `levels_de.properties`: `levels.rooms.special.eventroom$bloodritualfloor.*` und `...$bloodaltarvis.*`. Jedes untersuchbare Custom-Tile braucht name/desc in beiden Sprachen.
 - **TP-Sperre (5%)**: permanent, nicht einmalig. Zustand ist das Feld `Hero.bloodSeal`, gesichert in `storeInBundle`/`restoreFromBundle`. Neues max HP = theoretische Max minus Sperre. Sperre = 5% der theoretischen Max, aufgerundet (21 TP → Sperre 2 → 19 verfügbar). Umsetzung: `theoreticalHT()` (unverändert inkl. Ring- und Elixir-Buffs), `sealedHT()`, `updateHT()`. UI: `StatusPane` zeichnet den gesperrten Anteil als schwarz-lila Segment (halbtransparent `0x994A0B6B`, immer 1 px Überlappung nach links, damit Rundung keine dunkle Lücke lässt); die HP-Anzeige in der Leiste bleibt `HP/Max`. Das Stats-Fenster (`WndHero`) zeigt `[theoretische max TP] -[Reduktion in absoluten Zahlen]`.
@@ -39,5 +38,6 @@ Gültig für `core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/events
 - [ ] Event-Raum in Debug-Ebene 0 einbauen
 - [ ] Apply-Effekt ist save/load-fest (Bundle-Keys mit Schlüsselkonstanten, kein verlorenes Zustandsfeld)
 - [ ] `EventSmokeTest` erweitert und grün
+- [ ] Den Event Raum in Debug bzw. Test Ebene 0 eingebaut
 - [ ] Build: `./gradlew :core:test -Dorg.gradle.java.home=/home/atrebas/.gradle/jdks/eclipse_adoptium-21-amd64-linux.2`
 - [ ] `CLAUDE.md` und `Agent.md` bleiben unberührt

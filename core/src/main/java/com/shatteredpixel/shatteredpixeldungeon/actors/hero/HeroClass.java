@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.QuickSlot;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.cleric.AscendedForm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.cleric.PowerOfMany;
@@ -109,18 +110,21 @@ public enum HeroClass {
 		Waterskin waterskin = new Waterskin();
 		waterskin.collect();
 
-		new ScrollOfIdentify().identify();
-		new ScrollOfUpgrade().identify();
-		new PotionOfStrength().identify();
-		for (int j = 0; j <20; j++) {
-			new ScrollOfIdentify().collect();
-			new ScrollOfUpgrade().collect();
-			new ScrollOfUpgrade().collect();
-			new PotionOfStrength().collect();
+		if (ShatteredPixelDungeon.devModeActive()) {
+			//Nur für Test/Debugzwecke, damit man die Items nicht erst finden muss
+			new ScrollOfIdentify().identify();
+			new ScrollOfUpgrade().identify();
+			new PotionOfStrength().identify();
+			for (int j = 0; j < 20; j++) {
+				new ScrollOfIdentify().collect();
+				new ScrollOfUpgrade().collect();
+				new ScrollOfUpgrade().collect();
+				new PotionOfStrength().collect();
+			}
+			new RunicBlade().identify().collect();
+			new Greataxe().identify().collect();
+			new Greatshield().identify().collect();
 		}
-		new RunicBlade().identify().collect();
-		new Greataxe().identify().collect();
-		new Greatshield().identify().collect();
 
 
 		switch (this) {

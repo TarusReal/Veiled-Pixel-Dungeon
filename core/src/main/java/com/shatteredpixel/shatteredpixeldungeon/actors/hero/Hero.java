@@ -1151,7 +1151,8 @@ public class Hero extends Char {
 					if (item instanceof Dewdrop
 							|| item instanceof TimekeepersHourglass.sandBag
 							|| item instanceof DriedRose.Petal
-							|| item instanceof Key) {
+							|| item instanceof Key
+							|| item instanceof com.shatteredpixel.shatteredpixeldungeon.items.GoldenBagItem) {
 						//Do Nothing
 					} else {
 						GLog.newLine();

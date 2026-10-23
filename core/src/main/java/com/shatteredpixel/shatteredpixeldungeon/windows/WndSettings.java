@@ -368,6 +368,8 @@ public class WndSettings extends WndTabbed {
 		ColorBlock sep2;
 		CheckBox chkFont;
 		CheckBox chkVibrate;
+		//only exists when ShatteredPixelDungeon.DEV_MODE_AVAILABLE is true
+		CheckBox chkDevMode;
 
 		@Override
 		protected void createChildren() {
@@ -601,6 +603,18 @@ public class WndSettings extends WndTabbed {
 				chkVibrate.checked(SPDSettings.vibration());
 			}
 			add(chkVibrate);
+
+			if (ShatteredPixelDungeon.DEV_MODE_AVAILABLE) {
+				chkDevMode = new CheckBox(Messages.get(this, "dev_mode")){
+					@Override
+					protected void onClick() {
+						super.onClick();
+						SPDSettings.devMode(checked());
+					}
+				};
+				chkDevMode.checked(SPDSettings.devMode());
+				add(chkDevMode);
+			}
 		}
 
 		@Override
@@ -647,6 +661,11 @@ public class WndSettings extends WndTabbed {
 				chkFont.setRect(0, sep2.y + 1 + GAP, width, BTN_HEIGHT);
 				chkVibrate.setRect(0, chkFont.bottom() + GAP, width, BTN_HEIGHT);
 				height = chkVibrate.bottom();
+			}
+
+			if (chkDevMode != null) {
+				chkDevMode.setRect(0, height + GAP, width, BTN_HEIGHT);
+				height = chkDevMode.bottom();
 			}
 		}
 

@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.TitleScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.WelcomeScene;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
@@ -48,6 +49,15 @@ public class ShatteredPixelDungeon extends Game {
 	//method provides no version (e.g. starting DesktopLauncher from the IDE), because saving
 	//with versionCode 0 makes Level.restoreFromBundle reject the save as "old save".
 	public static final int v3_3_8 = 896;
+
+	//master switch for the dev mode: with false the setting does not appear anywhere and every dev-mode behaviour is off.
+	//The actual toggle lives in the interface settings and is persisted via SPDSettings.
+	public static final boolean DEV_MODE_AVAILABLE = true;
+
+	//true only if the dev mode is both available (see above) and enabled in the settings
+	public static boolean devModeActive(){
+		return DEV_MODE_AVAILABLE && SPDSettings.devMode();
+	}
 
 	public ShatteredPixelDungeon( PlatformSupport platform ) {
 		super( sceneClass == null ? WelcomeScene.class : sceneClass, platform );

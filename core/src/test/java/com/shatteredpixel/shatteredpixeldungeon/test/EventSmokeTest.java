@@ -9,6 +9,8 @@ import com.shatteredpixel.shatteredpixeldungeon.events.BloodAltarEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventRunState;
 import com.shatteredpixel.shatteredpixeldungeon.events.MirrorEvent;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Sword;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Region0Level;
@@ -180,7 +182,17 @@ class EventSmokeTest extends GameTestBase {
 				assigned.add(event.getClass());
 			}
 		}
-		assertEquals(DungeonEvent.ALL.length, spirits, "level 0 should hold one spirit per event");
+		// the golden bag event is placed as an item on the ground, not as a spirit
+		for (Heap heap : level.heaps.values()) {
+			for (Item item : heap.items) {
+				if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.GoldenBagItem) {
+					DungeonEvent event = ((com.shatteredpixel.shatteredpixeldungeon.items.GoldenBagItem) item).peekEvent();
+					assertNotNull(event, "the golden bag item must carry an event");
+					assigned.add(event.getClass());
+				}
+			}
+		}
+		assertEquals(DungeonEvent.ALL.length - 1, spirits, "level 0 should hold one spirit per non-item event");
 		assertEquals(DungeonEvent.ALL.length, assigned.size(), "each event must be placed exactly once");
 
 		//arriving via the "Go anyway" transition falls back to the level's only transition, the exit

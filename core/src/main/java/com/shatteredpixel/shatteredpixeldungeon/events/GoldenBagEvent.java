@@ -17,13 +17,22 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.events;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GoldenBagGuardian;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
+import com.watabou.utils.Random;
 
 /**
- * Take a pile of gold, but risk waking a guardian somewhere on the floor.
+ * Take a pile of gold, but risk waking guardians somewhere on the floor.
  */
 public class GoldenBagEvent extends DungeonEvent {
 
@@ -42,29 +51,82 @@ public class GoldenBagEvent extends DungeonEvent {
 		return 2;
 	}
 
-	@Override
-	public String label( int stage, int choice ){
-		if (choice == 0){
-			return txt( "choice0_1", goldAmount() );
-		}
-		return super.label( stage, choice );
-	}
+	public boolean taken = false;
 
 	@Override
 	public void apply( Hero hero, int stage, int choice ){
-		if (choice != 0) return;
-
-		int amount = goldAmount();
-		Dungeon.gold += amount;
-		Statistics.goldCollected += amount;
-		GLog.i( txt( "log", amount ) );
-
-		if (Dungeon.level != null && Dungeon.level.spawnMob( 4 )){
-			GLog.w( txt( "guard" ) );
+		if (choice != 0){
+			return;
 		}
+
+		taken = true;
+
+		int full = goldAmount();
+		int gold;
+
+		// 60% chance: guardians wake and the full gold is taken.
+		if (Random.Float() < 0.6f){
+			gold = full;
+
+			// alarm effect, just like GuardianTrap
+			for (Mob mob : Dungeon.level.mobs){
+				mob.beckon( Dungeon.hero.pos );
+			}
+			GLog.w( txt( "guard" ) );
+			CellEmitter.center( Dungeon.hero.pos ).start( Speck.factory( Speck.SCREAM ), 0.3f, 3 );
+			Sample.INSTANCE.play( Assets.Sounds.ALERT );
+
+			// spawn guardians, scaled like the trap, but at least one
+			int count = Math.max( 1, (Dungeon.scalingDepth() - 5) / 5 );
+			int spawned = 0;
+			for (int i = 0; i < count; i++){
+				GoldenBagGuardian guardian = new GoldenBagGuardian();
+				guardian.createWeapon( false );
+				guardian.state = guardian.WANDERING;
+				guardian.pos = Dungeon.level.randomRespawnCell( guardian );
+				if (guardian.pos != -1){
+					GameScene.add( guardian );
+					guardian.beckon( Dungeon.hero.pos );
+					spawned++;
+				}
+			}
+			// ensure at least one guardian actually spawns
+			if (spawned == 0){
+				GoldenBagGuardian guardian = new GoldenBagGuardian();
+				guardian.createWeapon( false );
+				guardian.state = guardian.WANDERING;
+				guardian.pos = Dungeon.level.randomRespawnCell( guardian );
+				if (guardian.pos != -1){
+					GameScene.add( guardian );
+					guardian.beckon( Dungeon.hero.pos );
+				}
+			}
+		} else {
+			// no guardian: less gold (20-50% less)
+			int reduction = Random.Int( 20, 51 ); // 20..50
+			gold = Math.round( full * (100 - reduction) / 100f );
+		}
+
+		Dungeon.gold += gold;
+		Statistics.goldCollected += gold;
+		GLog.i( txt( "log", gold ) );
 	}
 
 	private int goldAmount(){
 		return 100 + Dungeon.depth * 25;
+	}
+
+	private static final String TAKEN = "taken";
+
+	@Override
+	public void storeInBundle( Bundle bundle ){
+		super.storeInBundle( bundle );
+		bundle.put( TAKEN, taken );
+	}
+
+	@Override
+	public void restoreFromBundle( Bundle bundle ){
+		super.restoreFromBundle( bundle );
+		taken = bundle.getBoolean( TAKEN );
 	}
 }

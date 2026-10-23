@@ -46,6 +46,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.traps.TeleportationTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.ToxicTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WornDartTrap;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.SurfaceScene;
@@ -151,11 +152,17 @@ public class SewerLevel extends RegularLevel {
 					@Override
 					public void call() {
 						//OK closes the dialog, "Go anyway" / "Doch" ascends to the surface,
-						//"Dev level" ascends to the level 0 debug floor
+						//"Dev level" (only in dev mode) ascends to the level 0 debug floor
+						String[] options = ShatteredPixelDungeon.devModeActive()
+								? new String[]{
+										Messages.get(SewerLevel.class, "leave_ok"),
+										Messages.get(SewerLevel.class, "leave_go"),
+										Messages.get(SewerLevel.class, "leave_dev")}
+								: new String[]{
+										Messages.get(SewerLevel.class, "leave_ok"),
+										Messages.get(SewerLevel.class, "leave_go")};
 						GameScene.show( new WndOptions( (String) null, Messages.get(hero, "leave"),
-								Messages.get(SewerLevel.class, "leave_ok"),
-								Messages.get(SewerLevel.class, "leave_go"),
-								Messages.get(SewerLevel.class, "leave_dev")) {
+								options ) {
 							@Override
 							protected void onSelect( int index ) {
 								if (index == 1) {

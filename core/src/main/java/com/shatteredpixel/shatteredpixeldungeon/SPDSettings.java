@@ -208,6 +208,17 @@ public class SPDSettings extends GameSettings {
 		return getBoolean(KEY_VIBRATION, true);
 	}
 
+	//dev mode is only offered at all when ShatteredPixelDungeon.DEV_MODE_AVAILABLE is true
+	public static final String KEY_DEV_MODE		= "dev_mode";
+
+	public static void devMode( boolean value ){
+		put(KEY_DEV_MODE, value);
+	}
+
+	public static boolean devMode(){
+		return getBoolean(KEY_DEV_MODE, false);
+	}
+
 	public static String gamesInProgressSort(){
 		return getString(KEY_GAMES_SORT, "level");
 	}

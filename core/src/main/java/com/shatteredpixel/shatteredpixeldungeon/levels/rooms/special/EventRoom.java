@@ -20,6 +20,8 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.BloodPriest;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.EventSpirit;
+import com.shatteredpixel.shatteredpixeldungeon.events.GoldenBagEvent;
+import com.shatteredpixel.shatteredpixeldungeon.items.GoldenBagItem;
 import com.shatteredpixel.shatteredpixeldungeon.events.BloodAltarEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.DungeonEvent;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
@@ -57,13 +59,28 @@ public class EventRoom extends SpecialRoom {
 			paintDefault( level );
 		}
 
-		EventSpirit spirit = event instanceof BloodAltarEvent ? new BloodPriest() : new EventSpirit();
-		if (event != null){
-			spirit.setEvent( event );
+		if (event instanceof BloodAltarEvent){
+			BloodPriest priest = new BloodPriest();
+			if (event != null){
+				priest.setEvent( event );
+			}
+			Point spiritPoint = new Point( c.x, c.y - 1 );
+			priest.pos = level.pointToCell( spiritPoint );
+			level.mobs.add( priest );
+		} else if (event instanceof GoldenBagEvent){
+			if (event != null){
+				GoldenBagItem bag = new GoldenBagItem();
+				bag.setEvent( event );
+				level.drop( bag, level.pointToCell( c ) );
+			}
+		} else {
+			EventSpirit spirit = new EventSpirit();
+			if (event != null){
+				spirit.setEvent( event );
+			}
+			spirit.pos = level.pointToCell( c );
+			level.mobs.add( spirit );
 		}
-		Point spiritPoint = event instanceof BloodAltarEvent ? new Point( c.x, c.y - 1 ) : c;
-		spirit.pos = level.pointToCell( spiritPoint );
-		level.mobs.add( spirit );
 
 		for (Door door : connected.values()) {
 			door.set( Door.Type.REGULAR );
