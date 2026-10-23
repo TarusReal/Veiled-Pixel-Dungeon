@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Veiled Pixel Dungeon pixel-art source",
+  "type": "object",
+  "required": ["name", "width", "height", "pixels"],
+  "properties": {
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "width": { "type": "integer", "minimum": 1 },
+    "height": { "type": "integer", "minimum": 1 },
+    "frameWidth": { "type": "integer", "minimum": 1 },
+    "frameHeight": { "type": "integer", "minimum": 1 },
+    "mode": { "type": "string", "enum": ["rgba", "indexed"] },
+    "pixels": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 4,
+        "items": { "type": "integer", "minimum": 0, "maximum": 255 }
+      }
+    }
+  },
+  "additionalProperties": true
+}
