@@ -61,6 +61,8 @@ public class Assets {
 		public static final String CITY_QUEST        = "environment/custom_tiles/city_quest.png";
 		public static final String CITY_BOSS        = "environment/custom_tiles/city_boss.png";
 		public static final String BLOOD_ALTAR      = "environment/custom_tiles/blood_altar.png";
+		public static final String GOLDEN_BAG_PEDESTAL = "environment/custom_tiles/golden_bag_pedestal.png";
+		public static final String GOLDEN_BAG_RUG = "environment/custom_tiles/golden_bag_rug.png";
 		public static final String BLOOD_ALTAR_FLOOR = "environment/custom_tiles/blood_altar_floor.png";
 		public static final String HALLS_SP         = "environment/custom_tiles/halls_special.png";
 	}

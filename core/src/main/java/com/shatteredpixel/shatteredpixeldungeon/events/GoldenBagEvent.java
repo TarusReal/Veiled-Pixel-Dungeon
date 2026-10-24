@@ -113,7 +113,7 @@ public class GoldenBagEvent extends DungeonEvent {
 	}
 
 	private int goldAmount(){
-		return 100 + Dungeon.depth * 25;
+		return 290 +Random.Int(0,35) + Dungeon.depth * 31;
 	}
 
 	private static final String TAKEN = "taken";

@@ -179,6 +179,7 @@ public class Region0Level extends Level {
 		map[top * width() + centerX] = Terrain.DOOR;
 
 		int centerY = (top + bottom) / 2;
+		EventRoom.furnishGoldenBag( this, centerX, centerY );
 		GoldenBagItem bag = new GoldenBagItem();
 		bag.setEvent( event );
 		drop( bag, centerY * width() + centerX );

@@ -55,6 +55,8 @@ public class EventRoom extends SpecialRoom {
 
 		if (event instanceof BloodAltarEvent){
 			paintBloodAltar( level, c );
+		} else if (event instanceof GoldenBagEvent){
+			paintGoldenBag( level, c );
 		} else {
 			paintDefault( level );
 		}
@@ -97,6 +99,26 @@ public class EventRoom extends SpecialRoom {
 		Painter.fill( level, this, 1, Terrain.EMPTY_SP );
 
 		furnishBloodAltar( level, c.x, c.y, top );
+	}
+
+	private void paintGoldenBag( Level level, Point c ){
+		Painter.fill( level, this, Terrain.WALL );
+		Painter.fill( level, this, 1, Terrain.EMPTY_SP );
+
+		furnishGoldenBag( level, c.x, c.y );
+	}
+
+	/**
+	 * Places the pedestal and bag visual. Caller paints the room floor/walls.
+	 */
+	public static void furnishGoldenBag( Level level, int centerX, int centerY ){
+		GoldenBagRug rug = new GoldenBagRug();
+		rug.pos( centerX - 1, centerY - 1 );
+		level.customTiles.add( rug );
+
+		GoldenBagPedestal pedestal = new GoldenBagPedestal();
+		pedestal.pos( centerX, centerY );
+		level.customTiles.add( pedestal );
 	}
 
 	/**
@@ -148,6 +170,64 @@ public class EventRoom extends SpecialRoom {
 				return null;
 			}
 			return super.image( tileX, tileY );
+		}
+
+		@Override
+		public String name( int tileX, int tileY ) {
+			return Messages.get( this, "name" );
+		}
+
+		@Override
+		public String desc( int tileX, int tileY ) {
+			return Messages.get( this, "desc" );
+		}
+	}
+
+	public static class GoldenBagRug extends CustomTilemap {
+
+		{
+			texture = Assets.Environment.GOLDEN_BAG_RUG;
+
+			tileW = 3;
+			tileH = 3;
+		}
+
+		private static final int TEX_WIDTH = 48;
+
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			v.map( mapSimpleImage( 0, 0, TEX_WIDTH ), tileW );
+			return v;
+		}
+
+		@Override
+		public String name( int tileX, int tileY ) {
+			return Messages.get( this, "name" );
+		}
+
+		@Override
+		public String desc( int tileX, int tileY ) {
+			return Messages.get( this, "desc" );
+		}
+	}
+
+	public static class GoldenBagPedestal extends CustomTilemap {
+
+		{
+			texture = Assets.Environment.GOLDEN_BAG_PEDESTAL;
+
+			tileW = 1;
+			tileH = 1;
+		}
+
+		private static final int TEX_WIDTH = 16;
+
+		@Override
+		public Tilemap create() {
+			Tilemap v = super.create();
+			v.map( mapSimpleImage( 0, 0, TEX_WIDTH ), tileW );
+			return v;
 		}
 
 		@Override

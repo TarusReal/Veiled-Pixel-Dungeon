@@ -53,6 +53,12 @@ public class BloodAltarEvent extends DungeonEvent {
 		hero.bloodSeal = true;
 		hero.updateHT( true );
 		hero.HP = Math.min( hero.HP, hero.HT );
+	}
+
+	//called when the last dialog window is closed, so the scroll only lands in the hero's
+	//inventory (or on the floor) after the whole conversation was clicked through
+	public void grantReward( Hero hero ){
+		if (!hero.bloodSeal) return;
 
 		Item scroll = new ScrollOfUpgrade();
 		if (!scroll.doPickUp( hero )){

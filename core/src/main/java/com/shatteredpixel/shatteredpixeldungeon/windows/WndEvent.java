@@ -55,8 +55,8 @@ public class WndEvent extends WndCompactOptions {
 
 		int next = event.nextStage( stage, index );
 
-		//golden bag: leaving it does nothing, just close the dialog
-		if (event instanceof GoldenBagEvent && index == 1){
+		//golden bag: never show a result dialog, just close
+		if (event instanceof GoldenBagEvent){
 			host.finished();
 			return;
 		}

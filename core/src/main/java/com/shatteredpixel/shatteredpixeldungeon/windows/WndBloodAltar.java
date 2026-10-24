@@ -61,6 +61,8 @@ public class WndBloodAltar extends WndCompactOptions {
 			public void hide(){
 				super.hide();
 				if (next < 0){
+					//the whole conversation is closed now - only then hand out the reward
+					event.grantReward( Dungeon.hero );
 					priest.finished();
 				} else {
 					event.setStage( next );
