@@ -90,6 +90,7 @@ public class ItemSpriteSheet {
 	private static final int UNCOLLECTIBLE  =                               xy(3, 2);   //14 slots
 	public static final int GOLD            = UNCOLLECTIBLE+0;
 	public static final int ENERGY          = UNCOLLECTIBLE+1;
+	public static final int GOLD_BAG        = UNCOLLECTIBLE+2;
 
 	public static final int DEWDROP         = UNCOLLECTIBLE+3;
 	public static final int PETAL           = UNCOLLECTIBLE+4;
@@ -102,6 +103,7 @@ public class ItemSpriteSheet {
 	static{
 		assignItemRect(GOLD,        15, 13);
 		assignItemRect(ENERGY,      16, 16);
+		assignItemRect(GOLD_BAG,    16, 16);
 
 		assignItemRect(DEWDROP,     10, 10);
 		assignItemRect(PETAL,       8,  8);

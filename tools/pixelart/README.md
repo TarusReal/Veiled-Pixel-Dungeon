@@ -5,5 +5,6 @@ This documentation has moved to the skill `veiled-pixel-art-tool`
 conventions, and workflows.
 
 Tooling lives in this directory (`tools/pixelart/`): `px.py`, `pixelart.py`,
-`editor.html`, `presets.py`, `validate.py`, `promote.py`, `schema.json`,
-`palettes/`.
+`dsl.py` + `pxscript.js` (pxs interpreter, Python and JS port), `editor.html`,
+`presets.py`, `validate.py`, `promote.py`, `schema.json`, `palettes/`,
+`tests/`.

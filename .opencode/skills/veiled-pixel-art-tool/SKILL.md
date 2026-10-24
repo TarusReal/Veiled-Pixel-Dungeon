@@ -33,27 +33,57 @@ Filenames: `snake_case.png`. Reference assets only via constants in
 ```json
 { "name": "blood_altar", "width": 16, "height": 16,
   "frameWidth": 16, "frameHeight": 16, "mode": "rgba",
-  "pixels": [[r,g,b,a], ...] }
+  "pixels": [[r,g,b,a], ...],
+  "recipe": "canvas 16 16\npoint 3 4 ffffff\n..." }
 ```
 
-Pixels are flat, row-major, values 0-255. `pixels` may also be a 2D array of
-rows; both are accepted.
+Pixels are per-pixel lists, row-major, values 0-255. `pixels` may also be a
+2D array of rows or a flat channel array; both are accepted. `recipe` is
+optional and holds the pxs script text that produced the image (see below);
+the web editor can re-run it via Recompile.
 
-## Web editor (humans)
+## pxs scripts (`.pxs`)
 
-Open `tools/pixelart/editor.html` in a browser. Preset -> Apply size -> draw
-(pencil/eraser/eyedropper/fill) -> Save JSON / Export PNG / Promote. Promote uses
-the File System Access API to write both files to a chosen folder; falls back to
-download if unavailable.
+Line-based mini-language for agent-drawn assets (canonical interpreter:
+`dsl.py`, JS port for the editor: `pxscript.js`). `#` starts a comment.
+
+Header: `canvas W H` (mandatory when fresh), `name <snake_case>`, `frame W H`,
+`bg <color>`. Colors: `3a5f2a`, `3a5f2a80` (hex without `#`), `rgb r g b[a]`.
+
+Commands:
+
+```
+color <color>            # set current color
+point x y [color]
+line x1 y1 x2 y2 [color]
+rect x y w h [color]     # outline
+rectfill x y w h [color]
+circle cx cy r [color]
+circlefill cx cy r [color]
+fill x y [color]         # flood fill on exact RGBA match
+outline [color] [thickness]   # outside, 4-neighbour; default current color, 1px
+shade amount             # add amount to RGB of non-transparent pixels
+mirror x|y|xy|off        # symmetry for subsequent draw commands
+shift dx dy              # move whole image, transparent fill
+repeat N {               # multiline block ending with a lone }
+```
+
+Out-of-bounds pixels are clipped; a shape completely outside adds a warning
+(not an error). Full grammar and behavior: docstring in `dsl.py`. The same
+interpreter is embedded in the editor (Recipe textarea + Recompile).
 
 ## Agent CLI (`px.py`)
 
-Run from `tools/pixelart/` with `PYTHONPATH=.`:
+Run from `tools/pixelart/`.
 
 ```bash
 ./px.py new <name> --preset tile_16 --out /tmp/opencode/pixelart-staging/<name>.px.json
 ./px.py render <file.px.json> [--out out.png]
 ./px.py import <file.png> [--preset ...] [--out out.px.json]
+./px.py compile <file.pxs> [--out out.px.json] [--png out.png] [--dry-run] [--preview]
+./px.py draw <target.px.json> "cmd ..." [...] [--png out.png] [--dry-run] [--preview]
+./px.py preview <file.pxs|.px.json|.png>
+./px.py selftest
 ./px.py validate <file> [--type tile|mob|item|effect] [--assets-java <path>]
 ./px.py promote <file> [--preset ...] [--target <subdir>] [--force]
 ./px.py palette <file.png> [--format text|json]
@@ -61,7 +91,30 @@ Run from `tools/pixelart/` with `PYTHONPATH=.`:
 ./px.py info
 ```
 
+- `compile` writes recipe = script text into the `.px.json`.
+- `draw` appends commands to an existing target (re-runs prior recipe); a
+  fresh target needs a `canvas` command. `--dry-run` validates without writing.
+- `selftest` compares `dsl.py` against the golden cases in `tests/cases/`.
+- `validate` returns nonzero for hard errors only; warnings go to stdout.
+
 Default staging dir: `/tmp/opencode/pixelart-staging/` (override `--staging`).
+
+## Tests (`tests/`)
+
+- `cases/*.pxs` + `*.expected.json`: golden cases (pixels + warnings).
+- `gen_expected.py`: regenerates the `.expected.json` from `dsl.py` after a
+  deliberate behavior change.
+- `run_py.py` / `run_js.js`: full comparison runner for Python and the JS
+  port; both must produce identical pixels and warnings.
+
+## Web editor (humans)
+
+Open `tools/pixelart/editor.html` in a browser (keep `pxscript.js` next to it).
+Presets and manual drawing: pencil/eraser/eyedropper/fill, Save JSON / Export
+PNG / Promote. The Recipe (pxs) panel holds the script text; Recompile re-runs
+it (with overwrite confirmation, Ctrl+Z undo when the size does not change).
+Promote uses the File System Access API to write both files to a chosen
+folder; falls back to download if unavailable.
 
 ## Agent module (`pixelart.py`)
 

@@ -158,11 +158,14 @@ def load_json(path) -> dict:
     return data
 
 
-def save_json(img: dict, path) -> None:
+def save_json(img: dict, path, extra: Optional[dict] = None) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    data = dict(img)
+    if extra:
+        data.update(extra)
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(img, f, indent=2, ensure_ascii=False)
+        json.dump(data, f, indent=2, ensure_ascii=False)
         f.write("\n")
 
 

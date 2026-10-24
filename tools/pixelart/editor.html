@@ -24,6 +24,8 @@
   input[type=range] { width:100%; }
   label { font-size:12px; color:var(--muted); }
 </style>
+<!-- pxs interpreter (shared with the Python CLI; tests/run_js.js keeps it in sync) -->
+<script src="pxscript.js"></script>
 </head>
 <body>
 <div id="toolbar">
@@ -53,6 +55,15 @@
     <div><label>FH</label><input type="number" id="inpFH" min="1" value="16"></div>
   </div>
   <button id="btnApplySize">Apply size</button>
+
+  <h3>Recipe (pxs)</h3>
+  <textarea id="recipeBox" spellcheck="false" rows="8" placeholder="# pxs v1 - drawing recipe
+# canvas 16 16, point x y [color], rect x y w h [color], ..."></textarea>
+  <div class="row">
+    <button id="btnRecompile" style="flex:2">Recompile</button>
+    <button id="btnClearRecipe">Clear</button>
+  </div>
+  <div id="recipeStatus" style="font-size:11px;color:var(--muted);min-height:12px;"></div>
 
   <h3>Tool</h3>
   <div class="row">
@@ -133,10 +144,12 @@ function restore(snap){
 
 function newImage(name,w,h,fw,fh){
   img = { name:name||"untitled", width:w, height:h, frameWidth:fw||w, frameHeight:fh||h, mode:"rgba",
-          pixels:new Array(w*h*4).fill(0) };
+          recipe:"", pixels:new Array(w*h*4).fill(0) };
   // default transparent
   for(let i=3;i<img.pixels.length;i+=4) img.pixels[i]=0;
   undoStack=[]; redoStack=[];
+  document.getElementById('recipeBox').value = "";
+  document.getElementById('recipeStatus').textContent = "";
   updateInfo();
   render();
 }
@@ -355,10 +368,12 @@ fileInput.addEventListener('change', async (e)=>{
     img = { name:data.name||f.name.replace('.px.json','').replace('.json',''),
             width:data.width, height:data.height,
             frameWidth:data.frameWidth||data.width, frameHeight:data.frameHeight||data.height,
-            mode:data.mode||'rgba', pixels:px.slice() };
+            mode:data.mode||'rgba', recipe:data.recipe||"", pixels:px.slice() };
     // ensure flat array of numbers
     if(Array.isArray(img.pixels[0])){ img.pixels = img.pixels.flat(); }
     undoStack=[]; redoStack=[];
+    document.getElementById('recipeBox').value = img.recipe || "";
+    document.getElementById('recipeStatus').textContent = img.recipe ? "recipe loaded" : "";
     updateInfo(); render();
     setStatus("loaded "+f.name);
   } else {
@@ -370,8 +385,10 @@ fileInput.addEventListener('change', async (e)=>{
       const id=cx.getImageData(0,0,im.width,im.height);
       const name=f.name.replace('.png','');
       img={ name:name, width:im.width, height:im.height, frameWidth:im.width, frameHeight:im.height,
-            mode:'rgba', pixels:Array.from(id.data) };
+            mode:'rgba', recipe:'', pixels:Array.from(id.data) };
       undoStack=[]; redoStack=[];
+      document.getElementById('recipeBox').value = "";
+      document.getElementById('recipeStatus').textContent = "";
       updateInfo(); render();
       URL.revokeObjectURL(url);
       setStatus("imported "+f.name);
@@ -386,7 +403,9 @@ function setStatus(msg){ document.getElementById('status').textContent=msg; }
 document.getElementById('btnSaveJson').addEventListener('click', ()=>{
   ensureImage();
   const data={ name:img.name, width:img.width, height:img.height,
-              frameWidth:img.frameWidth, frameHeight:img.frameHeight, mode:img.mode, pixels:[] };
+              frameWidth:img.frameWidth, frameHeight:img.frameHeight, mode:img.mode,
+              recipe:document.getElementById('recipeBox').value || img.recipe || "",
+              pixels:[] };
   for(let y=0;y<img.height;y++){
     for(let x=0;x<img.width;x++){
       const i=(y*img.width+x)*4;
@@ -420,7 +439,9 @@ document.getElementById('btnPromote').addEventListener('click', async ()=>{
   ensureImage();
   // build json + png blobs
   const data={ name:img.name, width:img.width, height:img.height,
-              frameWidth:img.frameWidth, frameHeight:img.frameHeight, mode:img.mode, pixels:[] };
+              frameWidth:img.frameWidth, frameHeight:img.frameHeight, mode:img.mode,
+              recipe:document.getElementById('recipeBox').value || img.recipe || "",
+              pixels:[] };
   for(let y=0;y<img.height;y++){
     for(let x=0;x<img.width;x++){
       const i=(y*img.width+x)*4;
@@ -463,6 +484,69 @@ document.getElementById('btnPromote').addEventListener('click', async ()=>{
     setStatus("File System Access API unavailable; downloaded both files instead.");
   }
 });
+
+// ---------------------------------------------------------------------------
+// Recipe (pxs) recompilation
+// ---------------------------------------------------------------------------
+
+const recipeBox = document.getElementById('recipeBox');
+const recipeStatus = document.getElementById('recipeStatus');
+
+// Pxs.run() speaks the per-pixel model ([[r,g,b,a], ...]); the editor keeps a
+// channel-flat array ([r,g,b,a, ...]).
+function pxImgToFlat(src){
+  const out = new Array(src.width * src.height * 4);
+  src.pixels.forEach((p, i) => {
+    const j = i * 4;
+    out[j] = p[0]; out[j+1] = p[1]; out[j+2] = p[2]; out[j+3] = p[3];
+  });
+  return out;
+}
+
+function applyRecipe(text){
+  if(!text.trim()){
+    recipeStatus.textContent = "recipe is empty";
+    return;
+  }
+  const r = Pxs.run(text, null, { requireCanvas: true });
+  if(!r.ok){
+    recipeStatus.textContent = "error: " + r.error;
+    return;
+  }
+  const src = r.img;
+  const same = img && img.width === src.width && img.height === src.height;
+  const confirmMsg = same
+    ? "Recompile replaces the current image contents. OK? (Ctrl+Z to undo)"
+    : "Recompile replaces the current image, including size change. Undo is NOT possible. OK?";
+  if(!window.confirm(confirmMsg)) return;
+  pushUndo();
+  img.width = src.width; img.height = src.height;
+  img.frameWidth = src.frameWidth || src.width;
+  img.frameHeight = src.frameHeight || src.height;
+  if(src.name && src.name !== "untitled") img.name = src.name;
+  img.recipe = text;
+  img.pixels = pxImgToFlat(src);
+  if(!same){ undoStack = []; redoStack = []; } // size changed, pixel-only undo unsupported
+  recipeBox.value = text;
+  updateInfo(); render();
+  recipeStatus.textContent = r.warnings.length
+    ? "compiled, warnings: " + r.warnings.join(" | ")
+    : "compiled";
+}
+
+document.getElementById('btnRecompile').addEventListener('click', ()=>{
+  ensureImage();
+  applyRecipe(recipeBox.value);
+});
+
+document.getElementById('btnClearRecipe').addEventListener('click', ()=>{
+  recipeBox.value = "";
+  if(img && typeof img !== "undefined") img.recipe = "";
+  recipeStatus.textContent = "recipe cleared";
+});
+
+// keep img.recipe in sync when the user edits the textarea directly
+recipeBox.addEventListener('change', ()=>{ if(img) img.recipe = recipeBox.value; });
 
 syncColorUI();
 ensureImage();

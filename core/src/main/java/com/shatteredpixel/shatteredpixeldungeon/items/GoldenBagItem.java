@@ -37,7 +37,7 @@ import java.util.ArrayList;
 public class GoldenBagItem extends Item implements EventHost {
 
 	{
-		image = ItemSpriteSheet.SANDBAG;
+		image = ItemSpriteSheet.GOLD_BAG;
 		stackable = false;
 	}
 
